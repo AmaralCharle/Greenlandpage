@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
 import Header from '../components/Header';
 import Trilhacard from '../components/Trilhacard';
-import Carousel from '../components/Carrossel';
 import Modal from '../components/login';
 import Footer from '../components/Footer';
+import Mapa from '../components/Mapa';
+import Weather from '../components/Weather';
 
 const trilhas = [
   {
@@ -73,7 +74,8 @@ const Home = () => {
             <Trilhacard key={trilha.id} {...trilha} />
           ))}
         </div>
-        <Carousel />
+        <Weather />
+        <Mapa />
       </main>
       {modalType && <Modal type={modalType} closeModal={closeModal} />}
       <Footer />

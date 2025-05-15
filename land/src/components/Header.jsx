@@ -45,6 +45,6 @@ const Header = () => {
       </HeaderContainer>
     </HeaderSection>
   );
-}
+};
 
 export default Header;
