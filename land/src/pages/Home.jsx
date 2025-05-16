@@ -6,6 +6,7 @@ import Modal from '../components/login';
 import Footer from '../components/Footer';
 import Mapa from '../components/Mapa';
 import Weather from '../components/Weather';
+import { Login } from './Cadastro';
 
 const trilhas = [
   {
@@ -68,16 +69,23 @@ const Home = () => {
     <div>
       <Navbar openModal={openModal} />
       <Header />
+      {modalType === 'login' && (
+        <div className="modal-overlay" style={{position: 'fixed', zIndex: 1000, left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+          <div style={{background: '#fff', borderRadius: 12, padding: '2rem 2.5rem 1.5rem 2.5rem', boxShadow: '0 4px 32px rgba(0,0,0,0.18)', minWidth: 340, maxWidth: '90vw', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'stretch'}}>
+            <span style={{position: 'absolute', top: 18, right: 22, fontSize: '2rem', color: '#888', cursor: 'pointer'}} onClick={closeModal}>&times;</span>
+            <Login />
+          </div>
+        </div>
+      )}
       <main className="container">
         <div className="trilhas-container">
           {trilhas.map((trilha) => (
             <Trilhacard key={trilha.id} {...trilha} />
           ))}
         </div>
-        <Weather />
         <Mapa />
       </main>
-      {modalType && <Modal type={modalType} closeModal={closeModal} />}
+      <Weather />
       <Footer />
     </div>
   );

@@ -262,6 +262,7 @@ const Mapa = () => {
   useEffect(() => {
     const gpxFile = `/markers/file${carouselIndex+1}.gpx`;
     getStartEndFromGPX(gpxFile, (start, end) => setStartEnd({start, end}));
+    console.log('carouselIndex:', carouselIndex, 'trilha:', trilhaSelecionada.label);
   }, [carouselIndex]);
 
   // Função para cor baseada na dificuldade
@@ -276,7 +277,7 @@ const Mapa = () => {
             <CarouselBtn onClick={handlePrev} $cor={getCor(trilhasPadronizadas[carouselIndex].difficulty)}>&lt;</CarouselBtn>
             <CarouselBtn onClick={handleNext} $cor={getCor(trilhasPadronizadas[carouselIndex].difficulty)}>&gt;</CarouselBtn>
           </CarouselNav>
-          <CarouselCard $cor={getCor(trilhasPadronizadas[carouselIndex].difficulty)}>
+          <CarouselCard key={carouselIndex} $cor={getCor(trilhasPadronizadas[carouselIndex].difficulty)}>
             <InfoRow style={{fontWeight:700, fontSize:'1.15rem'}}><FaMountain/> {trilhasPadronizadas[carouselIndex]?.label}</InfoRow>
             <InfoRow><FaRoad/> Distância: <span style={{fontWeight:600}}>{trilhasPadronizadas[carouselIndex]?.distance ? parseFloat(trilhasPadronizadas[carouselIndex].distance).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) : ''} m</span></InfoRow>
             <InfoRow><FaClock/> Duração: <span style={{fontWeight:600}}>{trilhasPadronizadas[carouselIndex]?.duration} min</span></InfoRow>

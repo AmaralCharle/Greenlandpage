@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import logo from '../assets/logotemp.jpg';
 import { setupMobileMenu } from '../utils/customScripts';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 
 const Nav = styled.nav`
   background: var(--verde-escuro);
@@ -96,6 +97,7 @@ const Navbar = ({ openModal }) => {
   useEffect(() => {
     setupMobileMenu();
   }, []);
+  const navigate = useNavigate();
 
   return (
     <Nav>
@@ -117,7 +119,7 @@ const Navbar = ({ openModal }) => {
           <button className="btn btn-login" onClick={() => openModal('login')}>
             <i className="fas fa-sign-in-alt"></i> Login
           </button>
-          <button className="btn" onClick={() => openModal('register')}>
+          <button className="btn" onClick={() => navigate('/cadastro')}>
             <i className="fas fa-user-plus"></i> Cadastre-se
           </button>
         </AuthButtons>

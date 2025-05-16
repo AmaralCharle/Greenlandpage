@@ -126,19 +126,71 @@ const FormSwitch = styled.div`
   }
 `;
 
+const CadastroForm = ({ closeModal }) => {
+  const [form, setForm] = React.useState({ nome: '', endereco: '', email: '' });
+  const [sucesso, setSucesso] = React.useState(false);
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setSucesso(true);
+  };
+
+  return (
+    <>
+      <Title>Cadastro</Title>
+      <form className="cadastro-form" onSubmit={handleSubmit} style={{width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem'}}>
+        <label htmlFor="nome">Nome Completo</label>
+        <input
+          type="text"
+          id="nome"
+          name="nome"
+          value={form.nome}
+          onChange={handleChange}
+          required
+        />
+        <label htmlFor="endereco">Endereço</label>
+        <input
+          type="text"
+          id="endereco"
+          name="endereco"
+          value={form.endereco}
+          onChange={handleChange}
+          required
+        />
+        <label htmlFor="email">E-mail</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          value={form.email}
+          onChange={handleChange}
+          required
+        />
+        <button type="submit" className="btn">Cadastrar</button>
+      </form>
+      {sucesso && <p className="cadastro-sucesso">Cadastro realizado com sucesso!</p>}
+    </>
+  );
+};
+
 const Modal = ({ type, closeModal }) => {
   const isLogin = type === 'login';
+  const isCadastro = type === 'cadastro';
 
   return (
     <ModalOverlay id={type + 'Modal'}>
       <ModalContent>
         <CloseButton onClick={() => closeModal(type)}>&times;</CloseButton>
-        <Title>
-          <i className={`fas ${isLogin ? 'fa-sign-in-alt' : 'fa-user-plus'}`}></i> {isLogin ? 'Login' : 'Cadastre-se'}
-        </Title>
-        <Form>
-          {isLogin ? (
-            <>
+        {isLogin ? (
+          <>
+            <Title>
+              <i className="fas fa-sign-in-alt"></i> Login
+            </Title>
+            <Form>
               <FormGroup>
                 <label htmlFor="loginEmail">E-mail</label>
                 <input type="email" id="loginEmail" required />
@@ -151,38 +203,21 @@ const Modal = ({ type, closeModal }) => {
                 <button type="button" className="btn">Entrar</button>
                 <a href="#">Esqueci minha senha</a>
               </FormActions>
-            </>
-          ) : (
-            <>
-              <FormGroup>
-                <label htmlFor="regName">Nome Completo</label>
-                <input type="text" id="regName" required />
-              </FormGroup>
-              <FormGroup>
-                <label htmlFor="regEmail">E-mail</label>
-                <input type="email" id="regEmail" required />
-              </FormGroup>
-              <FormGroup>
-                <label htmlFor="regPassword">Senha</label>
-                <input type="password" id="regPassword" required />
-              </FormGroup>
-              <FormGroup>
-                <label htmlFor="regConfirmPassword">Confirme sua Senha</label>
-                <input type="password" id="regConfirmPassword" required />
-              </FormGroup>
-              <FormActions>
-                <button type="button" className="btn">Cadastrar</button>
-              </FormActions>
-            </>
-          )}
-        </Form>
-        <FormSwitch>
-          {isLogin ? (
-            <>Não tem uma conta? <a onClick={() => closeModal('login') || setTimeout(() => closeModal('register'), 0)}>Cadastre-se</a></>
-          ) : (
-            <>Já tem uma conta? <a onClick={() => closeModal('register') || setTimeout(() => closeModal('login'), 0)}>Faça login</a></>
-          )}
-        </FormSwitch>
+            </Form>
+            <FormSwitch>
+              Não tem uma conta? <a onClick={() => closeModal('login') || setTimeout(() => closeModal('cadastro'), 0)}>Cadastre-se</a>
+            </FormSwitch>
+          </>
+        ) : isCadastro ? (
+          <CadastroForm closeModal={closeModal} />
+        ) : (
+          <>
+            <Title>
+              <i className="fas fa-user-plus"></i> Cadastre-se
+            </Title>
+            {/* fallback para cadastro antigo, se necessário */}
+          </>
+        )}
       </ModalContent>
     </ModalOverlay>
   );
