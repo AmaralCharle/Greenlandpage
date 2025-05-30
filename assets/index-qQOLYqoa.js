@@ -348,8 +348,8 @@ Please change the parent <Route path="${X}"> to <Route path="${X==="/"?"*":`${X}
     }
   }
 `;const p1=vt.footer`
-  background: #fff;
-  color: #222;
+  background: #0b4d1c; /* Verde escuro consistente em todos ambientes */
+  color: #fff;
   border-top: 2px solid #e0e0e0;
   padding: 32px 0 18px 0;
   margin-top: 50px;
@@ -392,7 +392,7 @@ Please change the parent <Route path="${X}"> to <Route path="${X==="/"?"*":`${X}
     justify-content: center;
   }
 `,mu=vt.a`
-  color: #000 !important; /* Preto absoluto para os ícones */
+  color: #fff !important; /* Branco absoluto para os ícones */
   transition: 0.2s;
   &:hover { color: #43A047 !important; } /* Verde no hover para destacar */
 `,y1=()=>w.jsx(p1,{id:"footer-contato",children:w.jsxs(_1,{children:[w.jsxs(Jf,{style:{minWidth:180},children:[w.jsx("img",{src:S_,alt:"Logo",style:{width:38,marginBottom:2}}),w.jsx("div",{style:{fontWeight:700},children:"Trilha Verde"}),w.jsx("div",{style:{fontSize:15,fontWeight:500},children:"Projeto em andamento."})]}),w.jsxs(Jf,{style:{minWidth:260},children:[w.jsx(g1,{children:"Contato"}),w.jsxs("div",{style:{fontSize:15},children:[w.jsx("b",{children:"E-mail:"})," example@example.com",w.jsx("br",{}),w.jsx("b",{children:"Telefone:"})," (21) 91234-5678",w.jsx("br",{}),w.jsx("b",{children:"Endereço:"})," Av. Roberto Silveira, N: 179 Mumbuca - Maricá, RJ"]})]}),w.jsx(Jf,{style:{alignItems:"flex-end",minWidth:180},children:w.jsxs(v1,{children:[w.jsx(mu,{href:"#",title:"Instagram","aria-label":"Instagram",children:w.jsx("i",{className:"fa-brands fa-instagram"})}),w.jsx(mu,{href:"#",title:"Twitter","aria-label":"Twitter",children:w.jsx("i",{className:"fa-brands fa-twitter"})}),w.jsx(mu,{href:"#",title:"Facebook","aria-label":"Facebook",children:w.jsx("i",{className:"fa-brands fa-facebook"})}),w.jsx(mu,{href:"#",title:"WhatsApp","aria-label":"WhatsApp",children:w.jsx("i",{className:"fa-brands fa-whatsapp"})})]})})]})});function Q_(o,f){const u=k.useRef(f);k.useEffect(function(){f!==u.current&&o.attributionControl!=null&&(u.current!=null&&o.attributionControl.removeAttribution(u.current),f!=null&&o.attributionControl.addAttribution(f)),u.current=f},[o,f])}const x1=1;function b1(o){return Object.freeze({__version:x1,map:o})}function K_(o,f){return Object.freeze({...o,...f})}const Rh=k.createContext(null);function Hu(){const o=k.use(Rh);if(o==null)throw new Error("No context provided: useLeafletContext() can only be used in a descendant of <MapContainer>");return o}function I_(o){function f(u,d){const{instance:p,context:g}=o(u).current;k.useImperativeHandle(d,()=>p);const{children:x}=u;return x==null?null:Ue.createElement(Rh,{value:g},x)}return k.forwardRef(f)}function S1(o){function f(u,d){const[p,g]=k.useState(!1),{instance:x}=o(u,g).current;k.useImperativeHandle(d,()=>x),k.useEffect(function(){p&&x.update()},[x,p,u.children]);const z=x._contentNode;return z?qy.createPortal(u.children,z):null}return k.forwardRef(f)}function w1(o){function f(u,d){const{instance:p}=o(u).current;return k.useImperativeHandle(d,()=>p),null}return k.forwardRef(f)}function Nh(o,f){const u=k.useRef(void 0);k.useEffect(function(){return f!=null&&o.instance.on(f),u.current=f,function(){u.current!=null&&o.instance.off(u.current),u.current=null}},[o,f])}function qu(o,f){const u=o.pane??f.pane;return u?{...o,pane:u}:o}function T1(o,f){return function(d,p){const g=Hu(),x=o(qu(d,g),g);return Q_(g.map,d.attribution),Nh(x.current,d.eventHandlers),f(x.current,g,d,p),x}}var Al={exports:{}};/* @preserve
