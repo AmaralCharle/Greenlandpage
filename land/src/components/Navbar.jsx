@@ -112,8 +112,12 @@ const Navbar = ({ openModal }) => {
         <NavLinks className="nav-links">
           <li><a href="#"><i className="fas fa-home"></i> Home</a></li>
           <li><a href="#"><i className="fas fa-map-marked-alt"></i> Trilhas</a></li>
-          <li><a href="#"><i className="fas fa-envelope"></i> Contato</a></li>
-          <li><a href="#"><i className="fas fa-info-circle"></i> Sobre</a></li>
+          <li><a href="#footer-contato" onClick={e => {
+            e.preventDefault();
+            const el = document.getElementById('footer-contato');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }}><i className="fas fa-envelope"></i> Contato</a></li>
+          <li><a href="#" onClick={e => { e.preventDefault(); navigate('/sobre'); }}><i className="fas fa-info-circle"></i> Sobre</a></li>
         </NavLinks>
         <AuthButtons className="auth-buttons">
           <button className="btn btn-login" onClick={() => openModal('login')}>

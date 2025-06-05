@@ -84,3 +84,25 @@
   padding: 0.7rem 0.5rem;
   border: 1px solid #a5d6a7;
 }
+@media (max-width: 600px) {
+  .cadastro-container {
+    max-width: 98vw;
+    padding: 18px 2vw 18px 2vw;
+    border-radius: 12px;
+    margin: 24px auto;
+  }
+  .cadastro-form {
+    gap: 0.7rem;
+  }
+  .cadastro-form label {
+    font-size: 0.98rem;
+  }
+  .cadastro-form input {
+    font-size: 0.98rem;
+    padding: 0.6rem 0.7rem;
+  }
+  .cadastro-form button {
+    font-size: 1rem;
+    padding: 0.7rem 1rem;
+  }
+}

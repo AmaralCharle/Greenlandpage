@@ -6,7 +6,7 @@ import Modal from '../components/login';
 import Footer from '../components/Footer';
 import Mapa from '../components/Mapa';
 import Weather from '../components/Weather';
-import { Login } from './Cadastro';
+import Login from './Login';
 
 const trilhas = [
   {
@@ -73,7 +73,7 @@ const Home = () => {
         <div className="modal-overlay" style={{position: 'fixed', zIndex: 1000, left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
           <div style={{background: '#fff', borderRadius: 12, padding: '2rem 2.5rem 1.5rem 2.5rem', boxShadow: '0 4px 32px rgba(0,0,0,0.18)', minWidth: 340, maxWidth: '90vw', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'stretch'}}>
             <span style={{position: 'absolute', top: 18, right: 22, fontSize: '2rem', color: '#888', cursor: 'pointer'}} onClick={closeModal}>&times;</span>
-            <Login />
+            <Login onClose={closeModal} />
           </div>
         </div>
       )}
@@ -84,8 +84,46 @@ const Home = () => {
           ))}
         </div>
         <Mapa />
+        <Weather />
+        {/* Bloco de feedback entre o clima e o rodapé */}
+        <div style={{
+          maxWidth: 420,
+          margin: '32px auto 0 auto',
+          background: '#f8f8f8',
+          borderRadius: 16,
+          boxShadow: '0 2px 12px rgba(0,0,0,0.07)',
+          padding: 24,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 12
+        }}>
+          <label htmlFor="feedback-text" style={{fontWeight: 600, fontSize: '1.15rem', color: '#388e3c', marginBottom: 6, textAlign: 'center'}}>Como está sendo sua experiência?</label>
+          <textarea
+            id="feedback-text"
+            rows={3}
+            placeholder="Conte pra gente!"
+            style={{width: '100%', borderRadius: 8, border: '1px solid #bdbdbd', padding: 10, fontSize: 15, resize: 'vertical', marginBottom: 8}}
+          />
+          <button
+            style={{
+              background: '#43A047',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 8,
+              padding: '8px 22px',
+              fontWeight: 600,
+              fontSize: 16,
+              cursor: 'pointer',
+              boxShadow: '0 1px 4px rgba(67,160,71,0.08)'
+            }}
+            onClick={() => alert('Feedback enviado! Obrigado por compartilhar sua experiência!')}
+          >
+            Enviar
+          </button>
+        </div>
+        {/* Fim do bloco de feedback */}
       </main>
-      <Weather />
       <Footer />
     </div>
   );

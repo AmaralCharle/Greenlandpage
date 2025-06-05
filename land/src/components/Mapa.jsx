@@ -9,10 +9,6 @@ import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { FaMountain, FaRoad, FaClock, FaArrowUp, FaExchangeAlt } from 'react-icons/fa';
 
-// Importa os ícones customizados
-import flagIcon from '/markers_icons/flag.png';
-import pinIcon from '/markers_icons/location-pin.png';
-
 // Corrige os ícones do leaflet
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: markerIcon2x,
@@ -22,7 +18,7 @@ L.Icon.Default.mergeOptions({
 
 // Função para escolher o ícone do marcador conforme a dificuldade
 function getCustomIcon(dificuldade) {
-  let iconUrl = pinIcon;
+  let iconUrl = '/Greenlandpage/markers_icons/location-pin.png';
   let iconColor = '#43A047';
   if (dificuldade === 'Moderada') iconColor = '#FFD600';
   if (dificuldade === 'Difícil') iconColor = '#E53935';
@@ -73,6 +69,26 @@ function getStartEndFromGPX(gpxFile, callback) {
       console.error('Erro geral ao processar GPX:', gpxFile, err);
       callback(null, null);
     });
+}
+
+// Função utilitária para extrair todos os pontos do GPX
+function getTrackPointsFromGPX(gpxFile, callback) {
+  fetch(gpxFile)
+    .then(res => res.text())
+    .then(str => {
+      const parser = new window.DOMParser();
+      const xml = parser.parseFromString(str, 'application/xml');
+      const trkpts = xml.getElementsByTagName('trkpt');
+      const points = [];
+      for (let i = 0; i < trkpts.length; i++) {
+        points.push([
+          parseFloat(trkpts[i].getAttribute('lat')),
+          parseFloat(trkpts[i].getAttribute('lon'))
+        ]);
+      }
+      callback(points);
+    })
+    .catch(() => callback([]));
 }
 
 const trilhas = [
@@ -194,6 +210,9 @@ const StyledMapContainer = styled(MapContainer)`
   }
 `;
 
+// Função para obter o caminho correto dos ícones
+const getIconUrl = (file) => `${import.meta.env.BASE_URL}Greenlandpage/markers_icons/${file}`;
+
 // Componente para carregar e exibir GPX
 const GPXTrack = ({ gpxFile, color, onLoaded }) => {
   const map = useMap();
@@ -242,6 +261,7 @@ const MapEvents = ({ onZoom }) => {
 const Mapa = () => {
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [startEnd, setStartEnd] = useState({start: null, end: null});
+  const [trackPoints, setTrackPoints] = useState([]);
   const [zoomLevel, setZoomLevel] = useState(13);
 
   // Funções para navegação do carrossel
@@ -260,9 +280,9 @@ const Mapa = () => {
   const trilhaSelecionada = trilhasPadronizadas[carouselIndex];
 
   useEffect(() => {
-    const gpxFile = `/markers/file${carouselIndex+1}.gpx`;
+    const gpxFile = `${import.meta.env.BASE_URL}Greenlandpage/markers/file${carouselIndex+1}.gpx`;
     getStartEndFromGPX(gpxFile, (start, end) => setStartEnd({start, end}));
-    console.log('carouselIndex:', carouselIndex, 'trilha:', trilhaSelecionada.label);
+    getTrackPointsFromGPX(gpxFile, setTrackPoints);
   }, [carouselIndex]);
 
   // Função para cor baseada na dificuldade
@@ -312,10 +332,9 @@ const Mapa = () => {
             doubleClickZoom={false}
             key={trilhaSelecionada.label}
             style={{height: '100%', width: '100%', minHeight: 420, minWidth: 320, zIndex: 2, background: '#e5e5e5'}}
-            zoomAnimation={false} // desabilita animação de zoom para performance
+            zoomAnimation={false}
           >
             <MapEvents onZoom={setZoomLevel} />
-            {/* TileLayer base: Satélite Esri World Imagery */}
             <TileLayer
               url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
               attribution="Tiles © Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
@@ -325,16 +344,22 @@ const Mapa = () => {
               keepBuffer={2}
               maxZoom={17}
             />
-            {/* GPX da trilha selecionada */}
-            <GPXTrack
-              gpxFile={`/markers/file${carouselIndex+1}.gpx`}
-              color="#1976d2"
-            />
+            {/* Linha do percurso real da trilha (GPX) */}
+            {trackPoints.length > 1 && (
+              <Polyline positions={trackPoints} pathOptions={{ color: '#1976d2', weight: 4, opacity: 0.8 }} />
+            )}
+            {/* Linha entre início e fim (opcional, pode remover se quiser só o GPX) */}
+            {startEnd.start && startEnd.end && (
+              <Polyline
+                positions={[startEnd.start, startEnd.end]}
+                pathOptions={{ color: '#43A047', weight: 5, dashArray: '8 8', opacity: 0.7 }}
+              />
+            )}
             {/* Marcador início real do GPX */}
             {startEnd.start && (
               <Marker
                 position={startEnd.start}
-                icon={L.icon({ iconUrl: pinIcon, iconSize: [44, 56], iconAnchor: [22, 52], popupAnchor: [0, -40], shadowUrl: markerShadow, shadowSize: [44, 56] })}
+                icon={L.icon({ iconUrl: getIconUrl('location-pin.png'), iconSize: [44, 56], iconAnchor: [22, 52], popupAnchor: [0, -40], shadowUrl: markerShadow, shadowSize: [44, 56] })}
               >
                 <Popup>
                   <div style={{textAlign:'center'}}>
@@ -348,7 +373,7 @@ const Mapa = () => {
             {startEnd.end && (
               <Marker
                 position={startEnd.end}
-                icon={L.icon({ iconUrl: flagIcon, iconSize: [44, 56], iconAnchor: [22, 52], popupAnchor: [0, -40], shadowUrl: markerShadow, shadowSize: [44, 56] })}
+                icon={L.icon({ iconUrl: getIconUrl('flag.png'), iconSize: [44, 56], iconAnchor: [22, 52], popupAnchor: [0, -40], shadowUrl: markerShadow, shadowSize: [44, 56] })}
               >
                 <Popup>
                   <div style={{textAlign:'center'}}>
@@ -365,7 +390,7 @@ const Mapa = () => {
                   key={trilha.label}
                   position={trilha.pos}
                   icon={L.icon({
-                    iconUrl: pinIcon,
+                    iconUrl: getIconUrl('location-pin.png'),
                     iconSize: [28, 36],
                     iconAnchor: [14, 34],
                     popupAnchor: [0, -30],
@@ -386,6 +411,12 @@ const Mapa = () => {
                 </Marker>
               )
             ))}
+            {startEnd.start && startEnd.end && (
+              <Polyline
+                positions={[startEnd.start, startEnd.end]}
+                pathOptions={{ color: '#43A047', weight: 5, dashArray: '8 8', opacity: 0.7 }}
+              />
+            )}
           </StyledMapContainer>
         </div>
       </MapFlex>

@@ -2,16 +2,38 @@ import React, { useState } from 'react';
 import './Cadastro.css';
 
 const Cadastro = () => {
-  const [form, setForm] = useState({ nome: '', endereco: '', email: '', telefone: '', senha: '' });
+  const [form, setForm] = useState({ nome: '', cpf: '', email: '', telefone: '', senha: '' });
   const [sucesso, setSucesso] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSucesso(true);
+    try {
+      const response = await fetch('http://localhost:8080/api/register/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: form.email, // ou outro campo, se quiser username separado
+          email: form.email,
+          password: form.senha,
+          name: form.nome,
+          phone: form.telefone,
+          cpf: form.cpf // agora pega do campo do formulário
+        })
+      });
+      if (response.ok) {
+        setSucesso(true);
+      } else {
+        setSucesso(false);
+        alert('Erro ao cadastrar. Verifique os dados.');
+      }
+    } catch (err) {
+      setSucesso(false);
+      alert('Erro de conexão com o servidor.');
+    }
   };
 
   return (
@@ -27,14 +49,14 @@ const Cadastro = () => {
           onChange={handleChange}
           required
         />
-        <label htmlFor="endereco">Endereço</label>
+        <label htmlFor="cpf">CPF (opcional)</label>
         <input
           type="text"
-          id="endereco"
-          name="endereco"
-          value={form.endereco}
+          id="cpf"
+          name="cpf"
+          value={form.cpf}
           onChange={handleChange}
-          required
+          placeholder="000.000.000-00"
         />
         <label htmlFor="email">E-mail</label>
         <input

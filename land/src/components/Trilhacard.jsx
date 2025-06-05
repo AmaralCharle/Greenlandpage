@@ -54,10 +54,10 @@ const Difficulty = styled.span`
   border: none;
   width: auto;
   height: auto;
-  background-color: ${({ level }) =>
-    level === 'Fácil' ? '#d4edda' : level === 'Moderada' ? '#fff3cd' : '#f8d7da'};
-  color: ${({ level }) =>
-    level === 'Fácil' ? '#155724' : level === 'Moderada' ? '#856404' : '#721c24'};
+  background-color: ${({ $level }) =>
+    $level === 'Fácil' ? '#d4edda' : $level === 'Moderada' ? '#fff3cd' : '#f8d7da'};
+  color: ${({ $level }) =>
+    $level === 'Fácil' ? '#155724' : $level === 'Moderada' ? '#856404' : '#721c24'};
 `;
 const CardDesc = styled.p`
   margin-bottom: 20px;
@@ -88,7 +88,7 @@ const Btn = styled.button`
   }
 `;
 const Details = styled.div`
-  max-height: ${({ active }) => (active ? '500px' : '0')};
+  max-height: ${({ $active }) => ($active ? '500px' : '0')};
   overflow: hidden;
   transition: max-height 0.5s;
   background: #f9f9f9;
@@ -126,7 +126,7 @@ const Trilhacard = ({ id, title, image, difficulty, time, distance, description,
       </CardImage>
       <CardContent>
         <CardInfo>
-          <Difficulty level={difficulty}>{difficulty}</Difficulty>
+          <Difficulty $level={difficulty}>{difficulty}</Difficulty>
           <span><i className="far fa-clock"></i> {time}</span>
           <span><i className="fas fa-route"></i> {distance}</span>
         </CardInfo>
@@ -134,7 +134,7 @@ const Trilhacard = ({ id, title, image, difficulty, time, distance, description,
         <Btn className="btn btn-detalhes" onClick={handleToggle}>
           <i className={`fas fa-chevron-${showDetails ? 'up' : 'down'}`}></i> {showDetails ? 'Ocultar detalhes' : 'Ver detalhes'}
         </Btn>
-        <Details active={showDetails} id={id}>
+        <Details $active={showDetails} id={id}>
           <DetailsContent>
             <h3>Informações da Trilha</h3>
             <FeatureList>
