@@ -55,10 +55,9 @@
 
 body {
     font-family: 'Poppins', sans-serif;
-    background-color: var(--bege);
+    background-color: #ffe5d0; /* salmão clarinho */
     color: var(--verde-escuro);
     line-height: 1.6;
-    background-image: url(imagens/logotemp.jpg);
 }
 
 .container {

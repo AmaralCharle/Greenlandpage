@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './Cadastro.css';
+import { API_BASE_URL } from '../config';
 
 const Cadastro = () => {
   const [form, setForm] = useState({ nome: '', cpf: '', email: '', telefone: '', senha: '' });
@@ -12,7 +13,7 @@ const Cadastro = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('https://painful.aksaraymalaklisi.net/api/register/', {
+      const response = await fetch(`${API_BASE_URL}register/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
