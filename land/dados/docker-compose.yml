@@ -36,9 +36,10 @@ services:
   nginx:
     image: nginx:latest
     container_name: projpage-nginx
+    hostname: projpage-nginx
     restart: always
     ports:
-      - "8080:80" # Estou usando 8080 só para evitar conflito com meu próprio webserver
+      - "8080:8080" # Estou usando 8080 só para evitar conflito com meu próprio webserver
     volumes:
       - static:/static:ro
       - media:/media:ro
@@ -48,9 +49,5 @@ services:
 
 volumes:
   mysql_data:
-  static:
   media:
-
-networks:
-  default:
-    driver: bridge
+  static:
