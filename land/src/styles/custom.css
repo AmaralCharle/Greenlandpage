@@ -60,6 +60,17 @@ body {
     line-height: 1.6;
 }
 
+html, body, #root, .app-bg, .main-bg, .page-bg, .container {
+    background: #ffe5d0 !important;
+    background-color: #ffe5d0 !important;
+}
+
+/* Remover qualquer cor azul de fundo global */
+.app-bg, .container, .main-bg, .page-bg {
+    background: none !important;
+    background-color: transparent !important;
+}
+
 .container {
     max-width: 1200px;
     margin: 0 auto;
