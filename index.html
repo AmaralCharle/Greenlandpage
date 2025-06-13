@@ -11,22 +11,11 @@
   </head>
   <body>
     <div id="root"></div>
-    <button class="acessibilidade-btn" id="acessibilidade-btn" title="Ativar acessibilidade VLibras" aria-label="Acessibilidade">
-      <i class="fas fa-universal-access"></i>
-    </button>
+    <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
     <script>
-      // Carregar VLibras de forma assíncrona
-      (function() {
-        var script = document.createElement('script');
-        script.src = 'https://vlibras.gov.br/app/vlibras-plugin.js';
-        script.onload = function() {
-          window.vlibrasWidget = new window.VLibras.Widget('https://vlibras.gov.br/app');
-          document.getElementById('acessibilidade-btn').onclick = function() {
-            if (window.vlibrasWidget && window.vlibrasWidget.open) window.vlibrasWidget.open();
-          };
-        };
-        document.body.appendChild(script);
-      })();
+      window.onload = function() {
+        new window.VLibras.Widget('https://vlibras.gov.br/app');
+      }
     </script>
   </body>
 </html>
