@@ -187,6 +187,7 @@ const CarouselCard = styled.div`
   gap: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   margin-bottom: 6px;
+  transition: background 0.5s ease-in-out, border 0.5s ease-in-out;
 `;
 const InfoRow = styled.div`
   display: flex;
@@ -207,6 +208,51 @@ const StyledMapContainer = styled(MapContainer)`
     min-width: unset;
     width: 100% !important;
     height: 320px !important;
+  }
+`;
+const Tooltip = styled.div`
+  visibility: hidden;
+  opacity: 0;
+  background: #222;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 4px 10px;
+  position: absolute;
+  z-index: 10;
+  top: -36px;
+  right: 0;
+  font-size: 0.95rem;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  white-space: nowrap;
+`;
+const FavoriteButton = styled.button`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  z-index: 2;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  &:hover {
+    transform: scale(1.1);
+  }
+  i {
+    color: ${props => props.$isFavorite ? '#FFD600' : '#bbb'};
+    font-size: 1.1rem;
+  }
+  &:hover > .tooltip {
+    visibility: visible;
+    opacity: 1;
   }
 `;
 
@@ -263,6 +309,11 @@ const Mapa = () => {
   const [startEnd, setStartEnd] = useState({start: null, end: null});
   const [trackPoints, setTrackPoints] = useState([]);
   const [zoomLevel, setZoomLevel] = useState(13);
+  const [favorited, setFavorited] = useState([]);
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem('user');
+    return saved ? JSON.parse(saved) : null;
+  });
 
   // Funções para navegação do carrossel
   const handlePrev = () => {
@@ -278,6 +329,7 @@ const Mapa = () => {
     difficulty: t.difficulty === 'Moderada' ? 'Moderado' : t.difficulty
   }));
   const trilhaSelecionada = trilhasPadronizadas[carouselIndex];
+  const isFav = favorited.some(fav => fav.id === trilhaSelecionada.label);
 
   useEffect(() => {
     const gpxFile = `${import.meta.env.BASE_URL}Greenlandpage/markers/file${carouselIndex+1}.gpx`;
@@ -285,8 +337,41 @@ const Mapa = () => {
     getTrackPointsFromGPX(gpxFile, setTrackPoints);
   }, [carouselIndex]);
 
+  useEffect(() => {
+    // Atualiza favoritos ao trocar trilha
+    const favs = localStorage.getItem('favorites');
+    setFavorited(favs ? JSON.parse(favs) : []);
+    const syncUser = () => {
+      const saved = localStorage.getItem('user');
+      setUser(saved ? JSON.parse(saved) : null);
+    };
+    window.addEventListener('storage', syncUser);
+    window.addEventListener('userChanged', syncUser);
+    return () => {
+      window.removeEventListener('storage', syncUser);
+      window.removeEventListener('userChanged', syncUser);
+    };
+  }, []);
+
   // Função para cor baseada na dificuldade
   const getCor = (dif) => dif === 'Fácil' ? '#43A047' : dif === 'Moderado' ? '#FFD600' : '#E53935';
+
+  const handleFavorite = (e) => {
+    e.stopPropagation();
+    if (!user) {
+      alert('Você precisa estar logado para favoritar trilhas!');
+      return;
+    }
+    let favs = localStorage.getItem('favorites');
+    favs = favs ? JSON.parse(favs) : [];
+    if (isFav) {
+      favs = favs.filter(fav => fav.id !== trilhaSelecionada.label);
+    } else {
+      favs.push({ id: trilhaSelecionada.label, ...trilhaSelecionada });
+    }
+    localStorage.setItem('favorites', JSON.stringify(favs));
+    setFavorited(favs);
+  };
 
   return (
     <MapWrapper>
@@ -297,8 +382,14 @@ const Mapa = () => {
             <CarouselBtn onClick={handlePrev} $cor={getCor(trilhasPadronizadas[carouselIndex].difficulty)}>&lt;</CarouselBtn>
             <CarouselBtn onClick={handleNext} $cor={getCor(trilhasPadronizadas[carouselIndex].difficulty)}>&gt;</CarouselBtn>
           </CarouselNav>
-          <CarouselCard key={carouselIndex} $cor={getCor(trilhasPadronizadas[carouselIndex].difficulty)}>
-            <InfoRow style={{fontWeight:700, fontSize:'1.15rem'}}><FaMountain/> {trilhasPadronizadas[carouselIndex]?.label}</InfoRow>
+          <CarouselCard key={carouselIndex} $cor={getCor(trilhasPadronizadas[carouselIndex].difficulty)} style={{position:'relative'}}>
+            {user && (
+              <FavoriteButton onClick={handleFavorite} $isFavorite={isFav} title="" >
+                <i className={`fa${isFav ? 's' : 'r'} fa-star`}></i>
+                <Tooltip className="tooltip">{isFav ? 'Remover dos favoritos' : 'Favoritar'}</Tooltip>
+              </FavoriteButton>
+            )}
+            <InfoRow style={{fontWeight:700, fontSize:'1.15rem', paddingRight:32}}><FaMountain/> {trilhasPadronizadas[carouselIndex]?.label}</InfoRow>
             <InfoRow><FaRoad/> Distância: <span style={{fontWeight:600}}>{trilhasPadronizadas[carouselIndex]?.distance ? parseFloat(trilhasPadronizadas[carouselIndex].distance).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) : ''} m</span></InfoRow>
             <InfoRow><FaClock/> Duração: <span style={{fontWeight:600}}>{trilhasPadronizadas[carouselIndex]?.duration} min</span></InfoRow>
             <InfoRow><FaExchangeAlt/> Tipo: <span style={{fontWeight:600}}>{trilhasPadronizadas[carouselIndex]?.routetype === 'ida_volta' ? 'Ida e Volta' : 'Ida'}</span></InfoRow>

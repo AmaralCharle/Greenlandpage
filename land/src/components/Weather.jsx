@@ -76,9 +76,26 @@ const Weather = () => {
   };
 
   return (
-    <div id="container" style={{display: 'flex', flexDirection: 'row', gap: '32px', justifyContent: 'center', alignItems: 'flex-start', background: 'none'}}>
+    <div id="container" style={{
+      display: 'flex',
+      flexDirection: 'row',
+      gap: '32px',
+      justifyContent: 'center',
+      alignItems: 'flex-start',
+      background: 'none',
+      flexWrap: 'wrap',
+      width: '100%',
+      maxWidth: '100vw',
+    }}>
       {/* Painel principal Weather, 100% original, sem carrossel dentro */}
-      <div style={{minWidth: 340, maxWidth: 400, width: '100%'}}>
+      <div style={{
+        minWidth: 240,
+        maxWidth: 400,
+        width: '100%',
+        flex: '1 1 320px',
+        boxSizing: 'border-box',
+        margin: '0 auto',
+      }}>
         <form id="search" onSubmit={handleSearch} autoComplete="off" style={{
           display: 'flex',
           alignItems: 'center',
@@ -187,7 +204,14 @@ const Weather = () => {
         <div id="alert">{loading ? 'Carregando previsão...' : alert}</div>
       </div>
       {/* Painel lateral: previsão 5 dias, carrossel vertical, compacto, mas separado do painel principal */}
-      <div style={{minWidth: 220, maxWidth: 260, width: '100%'}}>
+      <div style={{
+        minWidth: 180,
+        maxWidth: 340,
+        width: '100%',
+        flex: '1 1 220px',
+        boxSizing: 'border-box',
+        margin: '0 auto',
+      }}>
         <WeatherForecast forecast={forecast} />
       </div>
     </div>

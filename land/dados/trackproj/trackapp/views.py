@@ -2,9 +2,9 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.contrib.auth.models import User
-from .models import Track, Profile, Rating
+from .models import Track, Profile, Rating, Favorite
 from .serializers import (
-    TrackSerializer, UserRegisterSerializer, UserSerializer, ProfileSerializer, RatingSerializer
+    TrackSerializer, UserRegisterSerializer, UserSerializer, ProfileSerializer, RatingSerializer, FavoriteSerializer
 )
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.pagination import PageNumberPagination
@@ -15,6 +15,29 @@ class TrackViewSet(viewsets.ModelViewSet):
     serializer_class = TrackSerializer
     pagination_class = PageNumberPagination
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_serializer_context(self):
+        return {'request': self.request}
+
+    @action(detail=True, methods=['post', 'delete'], permission_classes=[permissions.IsAuthenticated])
+    def favorite(self, request, pk=None):
+        track = self.get_object()
+        user = request.user
+
+        if request.method == 'POST':
+            if Favorite.objects.filter(user=user, track=track).exists():
+                return Response({'detail': 'Trilha já favoritada.'}, status=status.HTTP_409_CONFLICT)
+            else:
+                Favorite.objects.create(user=user, track=track)
+                return Response({'detail': 'Trilha favoritada com sucesso.'}, status=status.HTTP_201_CREATED)
+
+        elif request.method == 'DELETE':
+            try:
+                favorite_instance = Favorite.objects.get(user=user, track=track)
+                favorite_instance.delete()
+                return Response({'detail': 'Trilha removida dos favoritos.'}, status=status.HTTP_204_NO_CONTENT)
+            except Favorite.DoesNotExist:
+                return Response({'detail': 'Trilha não está nos seus favoritos.'}, status=status.HTTP_404_NOT_FOUND)
 
 class UserRegisterViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -36,12 +59,12 @@ class UserViewSet(viewsets.ModelViewSet):
     def me(self, request):
         user = request.user
         if request.method in ['PUT', 'PATCH']:
-            profile_serializer = ProfileSerializer(user.profile, data=request.data, partial=True)
+            profile_serializer = ProfileSerializer(user.profile, data=request.data, partial=True, context={'request': request})
             if profile_serializer.is_valid():
                 profile_serializer.save()
-                return Response(UserSerializer(user).data)
+                return Response(UserSerializer(user, context={'request': request}).data)
             return Response(profile_serializer.errors, status=400)
-        return Response(UserSerializer(user).data)
+        return Response(UserSerializer(user, context={'request': request}).data)
 
 class RatingViewSet(viewsets.ModelViewSet):
     queryset = Rating.objects.all()

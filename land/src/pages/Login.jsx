@@ -8,6 +8,7 @@ const Login = ({ onClose }) => {
   const [sucesso, setSucesso] = useState(false);
   const [erro, setErro] = useState('');
   const [logado, setLogado] = useState(!!localStorage.getItem('access_token'));
+  const [showAccessibility, setShowAccessibility] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -39,10 +40,22 @@ const Login = ({ onClose }) => {
         const data = await response.json();
         localStorage.setItem('access_token', data.access);
         localStorage.setItem('refresh_token', data.refresh);
+        // Buscar dados do usuário logado
+        const userResp = await fetch(`${API_BASE_URL}users/me/`, {
+          headers: { 'Authorization': `Bearer ${data.access}` }
+        });
+        if (userResp.ok) {
+          const userData = await userResp.json();
+          localStorage.setItem('user', JSON.stringify({
+            name: userData.profile?.name || userData.username || userData.email,
+            photo: userData.profile?.picture ? (userData.profile.picture.startsWith('http') ? userData.profile.picture : `${API_BASE_URL.replace('/api/', '')}${userData.profile.picture}`) : null
+          }));
+          // Dispara evento customizado para atualizar Navbar instantaneamente
+          window.dispatchEvent(new Event('userChanged'));
+        }
         setSucesso(true);
         setErro('');
         setLogado(true);
-        // Exibe mensagem de sucesso por 1 segundo antes de fechar o modal
         setTimeout(() => {
           if (onClose) onClose();
           navigate('/');
@@ -81,21 +94,77 @@ const Login = ({ onClose }) => {
 
   return (
     <div className="cadastro-container" style={{ position: 'relative' }}>
-      <span
+      <button
+        onClick={() => setShowAccessibility(!showAccessibility)}
         style={{
           position: 'absolute',
           top: 10,
           right: 16,
           fontSize: '1.3rem',
           cursor: 'pointer',
+          background: 'none',
+          border: 'none',
+          padding: '8px',
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'background-color 0.2s',
+          zIndex: 10,
+          ':hover': {
+            backgroundColor: 'rgba(0,0,0,0.1)'
+          }
         }}
-        role="img"
+        role="button"
         aria-label="Acessibilidade"
         title="Acessibilidade"
         tabIndex={0}
       >
         ♿
-      </span>
+      </button>
+      {showAccessibility && (
+        <div style={{
+          position: 'absolute',
+          top: 50,
+          right: 16,
+          background: 'white',
+          padding: '16px',
+          borderRadius: '8px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          zIndex: 10
+        }}>
+          <h3 style={{ margin: '0 0 8px 0', fontSize: '1rem' }}>Opções de Acessibilidade</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <button 
+              onClick={() => {
+                document.body.style.fontSize = '16px';
+                setShowAccessibility(false);
+              }}
+              style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '4px', background: 'white' }}
+            >
+              Tamanho de texto normal
+            </button>
+            <button 
+              onClick={() => {
+                document.body.style.fontSize = '18px';
+                setShowAccessibility(false);
+              }}
+              style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '4px', background: 'white' }}
+            >
+              Aumentar texto
+            </button>
+            <button 
+              onClick={() => {
+                document.body.style.fontSize = '14px';
+                setShowAccessibility(false);
+              }}
+              style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '4px', background: 'white' }}
+            >
+              Diminuir texto
+            </button>
+          </div>
+        </div>
+      )}
       <h2>Login</h2>
       <form className="cadastro-form" onSubmit={handleSubmit}>
         <label htmlFor="email">E-mail</label>

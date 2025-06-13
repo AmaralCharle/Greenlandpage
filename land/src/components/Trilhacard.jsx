@@ -1,5 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+// Removida importação de funções locais de favoritos
+
+// Sempre use o backend online para o Pages
+const API_BASE_URL =
+  window.location.hostname.includes('github.io')
+    ? 'https://painful.aksaraymalaklisi.net/api/'
+    : (import.meta.env.VITE_API_BASE_URL || window.API_BASE_URL || 'http://localhost:8000/api/');
 
 const Card = styled.div`
   background: var(--branco);
@@ -45,15 +52,18 @@ const CardInfo = styled.div`
   font-size: 0.9rem;
 `;
 const Difficulty = styled.span`
-  display: inline-block;
-  padding: 3px 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 12px;
   border-radius: 20px;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: bold;
   margin-right: 10px;
   border: none;
   width: auto;
-  height: auto;
+  min-width: 0;
+  max-width: max-content;
   background-color: ${({ $level }) =>
     $level === 'Fácil' ? '#d4edda' : $level === 'Moderada' ? '#fff3cd' : '#f8d7da'};
   color: ${({ $level }) =>
@@ -116,12 +126,128 @@ const FeatureList = styled.ul`
   }
 `;
 
+const FavoriteButton = styled.button`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  z-index: 2;
+  
+  &:hover {
+    transform: scale(1.1);
+  }
+  
+  i {
+    color: ${props => props.$isFavorite ? '#FFD600' : '#666'};
+    font-size: 1.4rem;
+  }
+`;
+
 const Trilhacard = ({ id, title, image, difficulty, time, distance, description, details, highlights }) => {
   const [showDetails, setShowDetails] = useState(false);
+  const [favorited, setFavorited] = useState(false);
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem('user');
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  useEffect(() => {
+    // Função para buscar o status de favorito da API
+    const fetchFavoriteStatus = async () => {
+      if (!user) {
+        setFavorited(false);
+        return;
+      }
+      const token = localStorage.getItem('access_token');
+      try {
+        // Buscando informações da trilha, que agora inclui is_favorited
+        const response = await fetch(`${API_BASE_URL}tracks/${id}/`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setFavorited(data.is_favorited);
+        } else {
+          console.error('Erro ao buscar status de favorito:', response.statusText);
+          setFavorited(false);
+        }
+      } catch (error) {
+        console.error('Erro de rede ao buscar status de favorito:', error);
+        setFavorited(false);
+      }
+    };
+
+    // fetchFavoriteStatus(); // LINHA TEMPORARIAMENTE DESATIVADA
+    setFavorited(false); // Garante que o ícone esteja desfavoritado e não cause erros.
+
+    // Sincroniza o usuário (já existia)
+    const syncUser = () => {
+      const saved = localStorage.getItem('user');
+      setUser(saved ? JSON.parse(saved) : null);
+    };
+    window.addEventListener('storage', syncUser);
+    window.addEventListener('userChanged', syncUser);
+    return () => {
+      window.removeEventListener('storage', syncUser);
+      window.removeEventListener('userChanged', syncUser);
+    };
+  }, [id, user]); // Adicionado user como dependência para re-fetch quando o usuário mudar
+
   const handleToggle = () => setShowDetails((prev) => !prev);
+
+  const handleFavorite = async (e) => {
+    e.stopPropagation();
+    if (!user) {
+      alert('Você precisa estar logado para favoritar trilhas!');
+      return;
+    }
+
+    const token = localStorage.getItem('access_token');
+    const method = favorited ? 'DELETE' : 'POST';
+
+    try {
+      const response = await fetch(`${API_BASE_URL}tracks/${id}/favorite/`, {
+        method: method,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        setFavorited(!favorited);
+        alert(favorited ? 'Trilha removida dos favoritos!' : 'Trilha favoritada com sucesso!');
+      } else if (response.status === 409) {
+        alert('Trilha já favoritada!');
+        setFavorited(true);
+      } else if (response.status === 404 && method === 'DELETE') {
+        alert('Trilha não encontrada nos seus favoritos para remover.');
+        setFavorited(false);
+      } else {
+        console.error('Erro na API de favoritos:', response.statusText);
+        alert('Ocorreu um erro ao processar o favorito.');
+      }
+    } catch (error) {
+      console.error('Erro de rede ao favoritar/desfavoritar:', error);
+      alert('Erro de conexão ao tentar favoritar/desfavoritar.');
+    }
+  };
+
   return (
     <Card>
       <CardImage style={{ backgroundImage: `url('${image}')` }}>
+        {/* Botão de favorito removido por solicitação do usuário */}
         <CardTitle>{title}</CardTitle>
       </CardImage>
       <CardContent>

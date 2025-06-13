@@ -10,7 +10,7 @@ import Login from './Login';
 
 const trilhas = [
   {
-    id: 'detalhes1',
+    id: 1,
     title: 'Pedra do Elefante',
     image: 'https://www.trilhasecachoeiras.com.br/wp-content/uploads/2014/11/alto-mourao-4.jpg',
     difficulty: 'Moderada',
@@ -26,7 +26,7 @@ const trilhas = [
     highlights: 'Vista para a Lagoa de Maricá, formação rochosa única, diversidade de flora local.'
   },
   {
-    id: 'detalhes2',
+    id: 2,
     title: 'Pedra do Macaco',
     image: 'https://i.ytimg.com/vi/hwWxJEEG92w/maxresdefault.jpg',
     difficulty: 'Fácil',
@@ -42,7 +42,7 @@ const trilhas = [
     highlights: 'Vista para a Lagoa de Maricá, formação rochosa única, diversidade de flora local.'
   },
   {
-    id: 'detalhes3',
+    id: 3,
     title: 'Trilha Pedra do Silvado',
     image: 'https://maricainfo.com/wp-content/uploads/2020/01/trilha-silvado.jpg',
     difficulty: 'Difícil',

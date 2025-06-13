@@ -43,6 +43,7 @@ class Profile(models.Model):
     name = models.CharField(max_length=100)
     phone = models.CharField(max_length=20, blank=True, null=True)
     cpf = models.CharField(max_length=14, blank=True, null=True)
+    photo = models.ImageField(upload_to='profile/', blank=True, null=True)  # Campo para foto do avatar
 
     def __str__(self):
         return self.name or self.user.username
@@ -60,3 +61,14 @@ class Rating(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.track.label} ({self.score})"
+
+class Favorite(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    track = models.ForeignKey(Track, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'track')
+
+    def __str__(self):
+        return f"{self.user.username} favoritou {self.track.label}"
