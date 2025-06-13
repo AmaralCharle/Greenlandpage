@@ -66,7 +66,8 @@ Please change the parent <Route path="${Q}"> to <Route path="${Q==="/"?"*":`${Q}
     display: block;
     position: absolute;
     top: 15px;
-    right: 20px;
+    left: 20px;
+    right: auto;
   }
 `,sx=lt.ul`
   display: flex;
