@@ -11,5 +11,11 @@
   </head>
   <body>
     <div id="root"></div>
+    <button class="acessibilidade-btn" onclick="window.VLibras && window.VLibras.Widget ? window.VLibras.Widget.open() : null" title="Ativar acessibilidade VLibras" aria-label="Acessibilidade">
+      <span role="img" aria-label="Acessibilidade">♿</span>
+    </button>
+    <script>
+      new window.VLibras.Widget('https://vlibras.gov.br/app');
+    </script>
   </body>
 </html>
