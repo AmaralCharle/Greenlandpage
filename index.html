@@ -6,10 +6,39 @@
     <link rel="icon" type="image/png" href="/Greenlandpage/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Green Trail</title>
-    <script type="module" crossorigin src="/Greenlandpage/assets/index-DFhev6LF.js"></script>
+    <style>
+      /* Forçar o botão do UserWay para o meio da tela no canto direito */
+      .uwy.userway,
+      .uwy.userway .uai,
+      .uwy.userway .uai .uai-btn {
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        bottom: auto !important;
+        right: 32px !important;
+        left: auto !important;
+      }
+      @media (max-width: 768px) {
+        .uwy.userway,
+        .uwy.userway .uai,
+        .uwy.userway .uai .uai-btn {
+          top: 60% !important;
+          transform: translateY(-50%) !important;
+          right: 12px !important;
+        }
+      }Add commentMore actions
+    </style>
+    <script type="module" crossorigin src="/Greenlandpage/assets/index-DlwUQAvS.js"></script>
     <link rel="stylesheet" crossorigin href="/Greenlandpage/assets/index-C1yloHEQ.css">
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      (function(d){
+        var s = d.createElement("script");
+        s.setAttribute("data-account", "4Qw6Qw6Qw6");
+        s.src="https://cdn.userway.org/widget.js";
+        (d.body || d.head).appendChild(s);
+      })(document)
+    </script>
   </body>
 </html>
