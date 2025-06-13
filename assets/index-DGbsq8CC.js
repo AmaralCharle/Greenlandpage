@@ -246,15 +246,18 @@ Please change the parent <Route path="${Q}"> to <Route path="${Q==="/"?"*":`${Q}
   margin-bottom: 15px;
   font-size: 0.9rem;
 `,Tx=lt.span`
-  display: inline-block;
-  padding: 3px 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 12px;
   border-radius: 20px;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: bold;
   margin-right: 10px;
   border: none;
   width: auto;
-  height: auto;
+  min-width: 0;
+  max-width: max-content;
   background-color: ${({$level:r})=>r==="Fácil"?"#d4edda":r==="Moderada"?"#fff3cd":"#f8d7da"};
   color: ${({$level:r})=>r==="Fácil"?"#155724":r==="Moderada"?"#856404":"#721c24"};
 `,Ex=lt.p`
