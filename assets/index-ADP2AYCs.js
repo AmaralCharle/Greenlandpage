@@ -154,12 +154,12 @@ Please change the parent <Route path="${Q}"> to <Route path="${Q==="/"?"*":`${Q}
     font-weight: bold;
   }
   @media (max-width: 768px) {
-    position: absolute;
-    left: 24px;
-    top: 40px;
+    position: static;
+    margin-left: 24px;
+    margin-top: 18px;
+    margin-bottom: 12px;
     transform: none;
-    margin-left: 0;
-    z-index: 1001;
+    z-index: auto;
   }
 `,fx=lt.div`
   position: absolute;
