@@ -7,16 +7,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Green Trail</title>
     <style>
-      /* Posicionar o botão do UserWay mais para baixo no canto direito */
-      .uwy.userway {
-        top: 600px !important;
+      /* Forçar o botão do UserWay para o meio da tela no canto direito */
+      .uwy.userway,
+      .uwy.userway .uai,
+      .uwy.userway .uai .uai-btn {
+        top: 50% !important;
+        transform: translateY(-50%) !important;
         bottom: auto !important;
         right: 32px !important;
         left: auto !important;
       }
       @media (max-width: 768px) {
-        .uwy.userway {
-          top: 480px !important;
+        .uwy.userway,
+        .uwy.userway .uai,
+        .uwy.userway .uai .uai-btn {
+          top: 60% !important;
+          transform: translateY(-50%) !important;
           right: 12px !important;
         }
       }
