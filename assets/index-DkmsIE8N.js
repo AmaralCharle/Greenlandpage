@@ -53,6 +53,11 @@ Please change the parent <Route path="${Q}"> to <Route path="${Q==="/"?"*":`${Q}
     display: flex;
     justify-content: flex-start;
   }
+  @media (max-width: 768px) {
+    margin-bottom: 18px;
+    justify-content: center;
+    width: 100%;
+  }
 `,lx=lt.div`
   display: none;
   cursor: pointer;
@@ -88,11 +93,12 @@ Please change the parent <Route path="${Q}"> to <Route path="${Q==="/"?"*":`${Q}
     flex-direction: column;
     width: 100%;
     margin-top: 15px;
+    align-items: center;
     &.active {
       display: flex;
     }
     li {
-      margin: 10px 0;
+      margin: 16px 0;
     }
   }
 `,ux=lt.div`
@@ -102,9 +108,18 @@ Please change the parent <Route path="${Q}"> to <Route path="${Q==="/"?"*":`${Q}
   @media (max-width: 768px) {
     display: none;
     width: 100%;
-    margin-top: 15px;
+    margin-top: 30px;
+    align-items: center;
+    flex-direction: column;
+    gap: 18px;
     &.active {
-      display: block;
+      display: flex;
+    }
+    .btn {
+      margin: 0 0 12px 0;
+      width: 90%;
+      max-width: 260px;
+      font-size: 1.1rem;
     }
   }
 `,cx=lt.div`
