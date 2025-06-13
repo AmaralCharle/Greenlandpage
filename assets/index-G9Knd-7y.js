@@ -94,7 +94,8 @@ Please change the parent <Route path="${Q}"> to <Route path="${Q==="/"?"*":`${Q}
     flex-direction: column;
     width: 100%;
     margin-top: 15px;
-    align-items: center;
+    align-items: flex-start;
+    padding-left: 32px;
     &.active {
       display: flex;
     }
@@ -154,9 +155,9 @@ Please change the parent <Route path="${Q}"> to <Route path="${Q==="/"?"*":`${Q}
   }
   @media (max-width: 768px) {
     position: absolute;
-    left: 50%;
-    top: 90px;
-    transform: translateX(-50%);
+    left: 24px;
+    top: 40px;
+    transform: none;
     margin-left: 0;
     z-index: 1001;
   }
