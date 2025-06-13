@@ -156,7 +156,7 @@ Please change the parent <Route path="${Q}"> to <Route path="${Q==="/"?"*":`${Q}
   @media (max-width: 768px) {
     position: static;
     margin-left: 24px;
-    margin-top: 18px;
+    margin-top: 24px;
     margin-bottom: 12px;
     transform: none;
     z-index: auto;
