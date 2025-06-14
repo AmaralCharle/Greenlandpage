@@ -176,10 +176,7 @@ const AvatarMenu = styled.div`
 `;
 
 // Sempre use o backend online para o Pages
-const API_BASE_URL =
-  window.location.hostname.includes('github.io')
-    ? 'https://painful.aksaraymalaklisi.net/api/'
-    : (import.meta.env.VITE_API_BASE_URL || window.API_BASE_URL || 'http://localhost:8000/api/');
+import { API_BASE_URL } from '../config';
 
 const Navbar = ({ openModal }) => {
   useEffect(() => {
@@ -217,7 +214,7 @@ const Navbar = ({ openModal }) => {
 
       // Tenta enviar a foto para o backend para persistência online
       const formData = new FormData();
-      formData.append('photo', file);
+      formData.append('picture', file);
       const token = localStorage.getItem('access_token');
       try {
         const resp = await fetch(`${API_BASE_URL}users/me/`, {
@@ -232,7 +229,7 @@ const Navbar = ({ openModal }) => {
           const updatedUserOnline = {
             ...user,
             photo: userData.profile?.picture
-              ? (userData.profile.picture.startsWith('http')
+              ? (userData.profile.picture.startsWith('https')
                   ? userData.profile.picture
                   : `${API_BASE_URL.replace(/\/api\/?$/, '')}${userData.profile.picture.startsWith('/') ? '' : '/'}${userData.profile.picture}`)
               : null
@@ -312,7 +309,7 @@ const Navbar = ({ openModal }) => {
           <div style={{ position: 'relative' }}>
             <UserAvatar onClick={handleAvatarClick} title={user.name || 'Usuário'}>
               {user.photo ? (
-                <img src={user.photo} alt="avatar" />
+                <img referrerPolicy="no-referrer" src={user.photo} alt="avatar" />
               ) : (
                 <span className="plus">+</span>
               )}
@@ -326,8 +323,8 @@ const Navbar = ({ openModal }) => {
             </UserAvatar>
             {showMenu && (
               <AvatarMenu>
-                <button onClick={user.photo ? handleAddPhoto : handleAddPhoto}>
-                  {user.photo ? 'Alterar foto' : 'Adicionar foto'}
+                <button onClick={user.picture ? handleAddPhoto : handleAddPhoto}>
+                  {user.picture ? 'Alterar foto' : 'Adicionar foto'}
                 </button>
                 <button onClick={handleLogout}>Logoff</button>
               </AvatarMenu>

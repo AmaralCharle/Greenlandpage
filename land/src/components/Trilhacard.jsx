@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+
 // Removida importação de funções locais de favoritos
 
 // Sempre use o backend online para o Pages
