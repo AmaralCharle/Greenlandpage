@@ -257,7 +257,7 @@ const FavoriteButton = styled.button`
 `;
 
 // Função para obter o caminho correto dos ícones
-const getIconUrl = (file) => `${import.meta.env.BASE_URL}Greenlandpage/markers_icons/${file}`;
+const getIconUrl = (file) => `/Greenlandpage/markers_icons/${file}`;
 
 // Componente para carregar e exibir GPX
 const GPXTrack = ({ gpxFile, color, onLoaded }) => {
@@ -304,6 +304,16 @@ const MapEvents = ({ onZoom }) => {
   return null;
 };
 
+// Recentra o mapa quando a posição alvo muda
+const CenterOn = ({ position, zoom }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (!position) return;
+    map.setView(position, zoom ?? 13, { animate: true });
+  }, [position, zoom, map]);
+  return null;
+};
+
 const Mapa = () => {
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [startEnd, setStartEnd] = useState({start: null, end: null});
@@ -332,7 +342,7 @@ const Mapa = () => {
   const isFav = favorited.some(fav => fav.id === trilhaSelecionada.label);
 
   useEffect(() => {
-    const gpxFile = `${import.meta.env.BASE_URL}Greenlandpage/markers/file${carouselIndex+1}.gpx`;
+    const gpxFile = `/Greenlandpage/markers/file${carouselIndex+1}.gpx`;
     getStartEndFromGPX(gpxFile, (start, end) => setStartEnd({start, end}));
     getTrackPointsFromGPX(gpxFile, setTrackPoints);
   }, [carouselIndex]);
@@ -426,6 +436,7 @@ const Mapa = () => {
             zoomAnimation={false}
           >
             <MapEvents onZoom={setZoomLevel} />
+            <CenterOn position={startEnd.start || trilhaSelecionada.pos} zoom={13} />
             <TileLayer
               url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
               attribution="Tiles © Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
