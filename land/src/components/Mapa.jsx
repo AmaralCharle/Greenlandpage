@@ -257,7 +257,7 @@ const FavoriteButton = styled.button`
 `;
 
 // Função para obter o caminho correto dos ícones
-const getIconUrl = (file) => `/Greenlandpage/markers_icons/${file}`;
+const getIconUrl = (file) => `${import.meta.env.BASE_URL}Greenlandpage/markers_icons/${file}`;
 
 // Componente para carregar e exibir GPX
 const GPXTrack = ({ gpxFile, color, onLoaded }) => {
@@ -342,7 +342,7 @@ const Mapa = () => {
   const isFav = favorited.some(fav => fav.id === trilhaSelecionada.label);
 
   useEffect(() => {
-    const gpxFile = `/Greenlandpage/markers/file${carouselIndex+1}.gpx`;
+    const gpxFile = `${import.meta.env.BASE_URL}Greenlandpage/markers/file${carouselIndex+1}.gpx`;
     getStartEndFromGPX(gpxFile, (start, end) => setStartEnd({start, end}));
     getTrackPointsFromGPX(gpxFile, setTrackPoints);
   }, [carouselIndex]);
