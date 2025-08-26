@@ -55,13 +55,22 @@
 
 body {
     font-family: 'Poppins', sans-serif;
-    background-color: #e6f4ea; /* verde clarinho igual ao login */
+    background-color: #e6f4ea !important; /* verde clarinho igual ao login */
     color: var(--verde-escuro);
     line-height: 1.6;
 }
 
 html, body, #root, .app-bg, .main-bg, .page-bg, .container {
     background: #e6f4ea !important;
+    background-color: #e6f4ea !important;
+}
+
+/* Forçar cor de fundo em todos os elementos */
+* {
+    background-color: inherit;
+}
+
+#root {
     background-color: #e6f4ea !important;
 }
 
