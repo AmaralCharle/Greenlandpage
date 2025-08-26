@@ -55,14 +55,14 @@
 
 body {
     font-family: 'Poppins', sans-serif;
-    background-color: #f8f9fa; /* cinza muito claro */
+    background-color: #e0f2f1; /* verde água bem claro */
     color: var(--verde-escuro);
     line-height: 1.6;
 }
 
 html, body, #root, .app-bg, .main-bg, .page-bg, .container {
-    background: #f8f9fa !important;
-    background-color: #f8f9fa !important;
+    background: #e0f2f1 !important;
+    background-color: #e0f2f1 !important;
 }
 
 /* Remover qualquer cor azul de fundo global */
