@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 
 const ForecastContainer = styled.div`
-  background: #ffe5d0;
+  background: #f5f5dc;
   border-radius: 20px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   padding: 18px 10px 10px 10px;
