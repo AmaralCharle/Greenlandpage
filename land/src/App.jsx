@@ -5,6 +5,7 @@ import Cadastro from './pages/Cadastro';
 import Login from './pages/Login';
 import Sobre from './pages/Sobre';
 import Favorites from './pages/Favorites';
+import Comunidade from './pages/Comunidade';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/sobre" element={<Sobre />} />
         <Route path="/favoritos" element={<Favorites />} />
+  <Route path="/comunidade" element={<Comunidade />} />
         {/* Adicione mais rotas aqui, como /trilhas ou /contato futuramente */}
       </Routes>
     </Router>

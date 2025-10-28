@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import logo from '../assets/logotemp.jpg';
 import { setupMobileMenu } from '../utils/customScripts';
 import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const Nav = styled.nav`
   background: var(--verde-escuro);
@@ -280,21 +280,22 @@ const Navbar = ({ openModal }) => {
     <Nav>
       <NavContainer>
         <Logo>
-          <a href=""><img src={logo} alt="Logo" className="logo-img" /></a>
+          <Link to="/"><img src={logo} alt="Logo" className="logo-img" /></Link>
         </Logo>
         <MenuToggle className="menu-toggle">
           <i className="fas fa-bars"></i>
         </MenuToggle>
         <NavLinks className="nav-links">
-          <li><a href="#"><i className="fas fa-home"></i> Home</a></li>
-          <li><a href="#"><i className="fas fa-map-marked-alt"></i> Trilhas</a></li>
-          <li><a href="/favoritos"><i className="fas fa-heart"></i> Favoritos</a></li>
+          <li><Link to="/"><i className="fas fa-home"></i> Home</Link></li>
+          <li><Link to="/trilhas"><i className="fas fa-map-marked-alt"></i> Trilhas</Link></li>
+          <li><Link to="/comunidade"><i className="fas fa-users"></i> Comunidade</Link></li>
+          <li><Link to="/favoritos"><i className="fas fa-heart"></i> Favoritos</Link></li>
           <li><a href="#footer-contato" onClick={e => {
             e.preventDefault();
             const el = document.getElementById('footer-contato');
             if (el) el.scrollIntoView({ behavior: 'smooth' });
           }}><i className="fas fa-envelope"></i> Contato</a></li>
-          <li><a href="#" onClick={e => { e.preventDefault(); navigate('/sobre'); }}><i className="fas fa-info-circle"></i> Sobre</a></li>
+          <li><Link to="/sobre"><i className="fas fa-info-circle"></i> Quem somos nós</Link></li>
         </NavLinks>
         <AuthButtons className="auth-buttons" style={{ display: user ? 'none' : undefined }}>
           <button className="btn btn-login" onClick={() => openModal('login')}>

@@ -85,44 +85,7 @@ const Home = () => {
         </div>
         <Mapa />
         <Weather />
-        {/* Bloco de feedback entre o clima e o rodapé */}
-        <div style={{
-          maxWidth: 420,
-          margin: '32px auto 0 auto',
-          background: '#f8f8f8',
-          borderRadius: 16,
-          boxShadow: '0 2px 12px rgba(0,0,0,0.07)',
-          padding: 24,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 12
-        }}>
-          <label htmlFor="feedback-text" style={{fontWeight: 600, fontSize: '1.15rem', color: '#388e3c', marginBottom: 6, textAlign: 'center'}}>Como está sendo sua experiência?</label>
-          <textarea
-            id="feedback-text"
-            rows={3}
-            placeholder="Conte pra gente!"
-            style={{width: '100%', borderRadius: 8, border: '1px solid #bdbdbd', padding: 10, fontSize: 15, resize: 'vertical', marginBottom: 8}}
-          />
-          <button
-            style={{
-              background: '#43A047',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 8,
-              padding: '8px 22px',
-              fontWeight: 600,
-              fontSize: 16,
-              cursor: 'pointer',
-              boxShadow: '0 1px 4px rgba(67,160,71,0.08)'
-            }}
-            onClick={() => alert('Feedback enviado! Obrigado por compartilhar sua experiência!')}
-          >
-            Enviar
-          </button>
-        </div>
-        {/* Fim do bloco de feedback */}
+        {/* feedback block removed (moved to Comunidade) */}
       </main>
       <Footer />
     </div>

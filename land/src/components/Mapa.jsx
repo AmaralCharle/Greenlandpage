@@ -320,6 +320,8 @@ const Mapa = () => {
   const [trackPoints, setTrackPoints] = useState([]);
   const [zoomLevel, setZoomLevel] = useState(13);
   const [favorited, setFavorited] = useState([]);
+  const [tileError, setTileError] = useState(false);
+  const [mapKey, setMapKey] = useState(0);
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('user');
     return saved ? JSON.parse(saved) : null;
@@ -437,15 +439,33 @@ const Mapa = () => {
           >
             <MapEvents onZoom={setZoomLevel} />
             <CenterOn position={startEnd.start || trilhaSelecionada.pos} zoom={13} />
+            {/* Tile server: prefer Esri imagery in production, fallback to OpenStreetMap in dev or on error */}
             <TileLayer
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-              attribution="Tiles © Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
+              key={mapKey}
+              url={(!import.meta.env.PROD || tileError) ? "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" : "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"}
+              attribution={( !import.meta.env.PROD || tileError) ? "© OpenStreetMap contributors" : "Tiles © Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"}
               updateWhenIdle={true}
               updateWhenZooming={false}
               updateInterval={1000}
               keepBuffer={2}
               maxZoom={17}
+              eventHandlers={{
+                tileerror: () => {
+                  console.warn('Tile load error detected, switching to fallback tiles');
+                  setTileError(true);
+                }
+              }}
             />
+            {tileError && (
+              <div style={{position:'absolute',left:12,top:12,zIndex:999,padding:10,background:'rgba(255,255,255,0.95)',borderRadius:8,boxShadow:'0 2px 8px rgba(0,0,0,0.12)'}}>
+                <div style={{fontWeight:700,color:'#333',marginBottom:6}}>Problema ao carregar camadas do mapa</div>
+                <div style={{fontSize:13,opacity:0.9,marginBottom:8}}>Trocando para camadas de mapa alternativas. Se o problema continuar, verifique sua conexão ou bloqueios de CORS.</div>
+                <div style={{display:'flex',gap:8}}>
+                  <button className="btn" onClick={() => { setTileError(false); setMapKey(k => k+1); }}>Tentar novamente</button>
+                  <button className="btn btn-outline" onClick={() => { setTileError(false); setMapKey(k => k+1); }}>Forçar fallback</button>
+                </div>
+              </div>
+            )}
             {/* Linha do percurso real da trilha (GPX) */}
             {trackPoints.length > 1 && (
               <Polyline positions={trackPoints} pathOptions={{ color: '#1976d2', weight: 4, opacity: 0.8 }} />

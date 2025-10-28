@@ -45,7 +45,7 @@ const Section = styled.section`
 `;
 const SectionTitle = styled.h2`
   font-size: 1.7rem;
-  color: #1976d2;
+  color: var(--verde-escuro);
   font-weight: 800;
   margin-bottom: 18px;
   letter-spacing: 0.5px;
@@ -61,33 +61,77 @@ const EquipeList = styled.ul`
   list-style: none;
   padding: 0;
   margin: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 18px 32px;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
 `;
+
 const EquipeItem = styled.li`
-  font-size: 1.18rem;
-  color: #333;
-  font-weight: 600;
-  background: #e8f5e9;
-  border-radius: 10px;
-  padding: 10px 22px;
-  box-shadow: 0 2px 8px rgba(67,160,71,0.08);
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  background: linear-gradient(90deg, #ffffff, #fff9f4);
+  border: 1px solid rgba(13,173,22,0.06);
+  border-left: 6px solid var(--verde-medio);
+  border-radius: 12px;
+  padding: 18px 20px;
+  box-shadow: 0 6px 22px rgba(15,80,20,0.05);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  &:hover { transform: translateY(-4px); box-shadow: 0 10px 28px rgba(15,80,20,0.07); }
+`;
+
+const Avatar = styled.div`
+  width: 72px;
+  height: 72px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--verde-medio), var(--verde-claro));
   display: flex;
   align-items: center;
-  gap: 10px;
-  &:before {
-    content: '👤';
-    color: #43A047;
-    font-size: 1.25em;
-  }
+  justify-content: center;
+  color: white;
+  font-weight: 900;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+`;
+
+const MemberInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const MemberName = styled.div`
+  font-size: 1.12rem;
+  font-weight: 800;
+  color: var(--verde-escuro);
+`;
+
+const MemberRole = styled.div`
+  font-size: 0.98rem;
+  color: #555;
+  margin-top: 6px;
+  font-weight: 600;
+`;
+
+const MemberBio = styled.div`
+  margin-top: 10px;
+  color: #333;
+  font-size: 0.98rem;
+  line-height: 1.4;
 `;
 
 const Sobre = () => (
   <BgWrapper>
     <Wrapper>
-      <Title>Sobre o Projeto</Title>
+      <Title>Quem somos nós</Title>
+
+      <Section>
+        <SectionTitle>Projeto Universitário e Propósito Social</SectionTitle>
+        <Text>
+          Este é um projeto universitário desenvolvido com propósito social: unir tecnologia, pesquisa e comunidade para promover a conservação ambiental, educação ecológica e o acesso responsável às trilhas e espaços naturais.
+          Nossa equipe trabalha em parceria com moradores, guias locais e órgãos públicos para transformar informações em ações de impacto social e ambiental.
+        </Text>
+      </Section>
+
       <Section>
         <SectionTitle>Informações Gerais</SectionTitle>
         <Text>
@@ -104,11 +148,59 @@ const Sobre = () => (
       <Section>
         <SectionTitle>Equipe</SectionTitle>
         <EquipeList>
-          <EquipeItem>Deyvison Fonseca</EquipeItem>
-          <EquipeItem>Rafael Dias</EquipeItem>
-          <EquipeItem>Richarle Fagundes do A. Oliveira</EquipeItem>
-          <EquipeItem>Jeferson Rosa</EquipeItem>
-          <EquipeItem>Vitor Amparo</EquipeItem>
+          <EquipeItem>
+            <Avatar>R</Avatar>
+            <MemberInfo>
+              <MemberName>Rafael Dias</MemberName>
+              <MemberRole>Gerente de Projeto</MemberRole>
+              <MemberBio>Coordena as entregas, cronogramas e comunicação entre equipes, garantindo que o projeto avance dentro do escopo e prazos.</MemberBio>
+            </MemberInfo>
+          </EquipeItem>
+
+          <EquipeItem>
+            <Avatar>J</Avatar>
+            <MemberInfo>
+              <MemberName>Jeferson Rosa</MemberName>
+              <MemberRole>Desenvolvedor Front End</MemberRole>
+              <MemberBio>Foco em componentes reutilizáveis e integração com APIs; trabalha em otimização de performance e responsividade.</MemberBio>
+            </MemberInfo>
+          </EquipeItem>
+
+          <EquipeItem>
+            <Avatar>A</Avatar>
+            <MemberInfo>
+              <MemberName>Alexander Nunes Guido</MemberName>
+              <MemberRole>Analista de Requisitos</MemberRole>
+              <MemberBio>Responsável por mapear necessidades dos usuários, escrever requisitos funcionais e garantir alinhamento entre equipe e stakeholders.</MemberBio>
+            </MemberInfo>
+          </EquipeItem>
+
+          <EquipeItem>
+            <Avatar>D</Avatar>
+            <MemberInfo>
+              <MemberName>Deyvison Fonseca</MemberName>
+              <MemberRole>Analista de Segurança</MemberRole>
+              <MemberBio>Cuida da segurança das aplicações, avaliações de risco e melhores práticas para proteger dados e infraestruturas.</MemberBio>
+            </MemberInfo>
+          </EquipeItem>
+
+          <EquipeItem>
+            <Avatar>V</Avatar>
+            <MemberInfo>
+              <MemberName>Vitor Amparo</MemberName>
+              <MemberRole>Desenvolvedor Back End</MemberRole>
+              <MemberBio>Projeto e manutenção das APIs e integração com banco de dados; responsável pela lógica servidor e deploy do backend.</MemberBio>
+            </MemberInfo>
+          </EquipeItem>
+
+          <EquipeItem>
+            <Avatar>Ri</Avatar>
+            <MemberInfo>
+              <MemberName>Richarle</MemberName>
+              <MemberRole>Desenvolvedor Front End</MemberRole>
+              <MemberBio>Especialista em interfaces e experiência do usuário, responsável pelo desenvolvimento das telas e interações do frontend.</MemberBio>
+            </MemberInfo>
+          </EquipeItem>
         </EquipeList>
       </Section>
     </Wrapper>

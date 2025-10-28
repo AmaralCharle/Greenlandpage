@@ -43,12 +43,14 @@ const FooterTitle = styled.div`
 `;
 const SocialIcons = styled.div`
   display: flex;
-  gap: 40px; /* Espaçamento ainda maior entre os ícones */
+  gap: 48px; /* aumenta espaçamento entre os ícones */
   align-items: center;
   justify-content: flex-end;
-  font-size: 2.1rem;
+  font-size: 2.4rem; /* ícones um pouco maiores */
   @media (max-width: 900px) {
     justify-content: center;
+    gap: 26px;
+    font-size: 2.2rem;
   }
 `;
 const IconLink = styled.a`
@@ -66,19 +68,21 @@ const Footer = () => (
         <div style={{fontSize: 15, fontWeight: 500}}>Projeto em andamento.</div>
       </FooterCol>
       <FooterCol style={{minWidth: 260}}>
-        <FooterTitle>Contato</FooterTitle>
         <div style={{fontSize: 15}}>
-          <b>E-mail:</b> example@example.com<br/>
+          <b>E-mail:</b> projeto@greenlandpage.org<br/>
           <b>Telefone:</b> (21) 91234-5678<br/>
           <b>Endereço:</b> Av. Roberto Silveira, N: 179 Mumbuca - Maricá, RJ
+          <div style={{marginTop: 8}}><small>Gerente de Projeto (WhatsApp): <a href="https://wa.me/5521912345678" style={{color: '#fff', textDecoration: 'underline'}}>+55 21 91234-5678</a></small></div>
         </div>
       </FooterCol>
       <FooterCol style={{alignItems: 'flex-end', minWidth: 180}}>
         <SocialIcons>
-          <IconLink href="#" title="Instagram" aria-label="Instagram"><i className="fa-brands fa-instagram"></i></IconLink>
+          {/* Projeto Instagram (fictício para ilustração) */}
+          <IconLink href="https://instagram.com/Greenlandpage" target="_blank" rel="noopener noreferrer" title="Instagram" aria-label="Instagram"><i className="fa-brands fa-instagram"></i></IconLink>
+          {/* Mantive ícones de redes sociais clássicas como ilustração */}
           <IconLink href="#" title="Twitter" aria-label="Twitter"><i className="fa-brands fa-twitter"></i></IconLink>
           <IconLink href="#" title="Facebook" aria-label="Facebook"><i className="fa-brands fa-facebook"></i></IconLink>
-          <IconLink href="#" title="WhatsApp" aria-label="WhatsApp"><i className="fa-brands fa-whatsapp"></i></IconLink>
+          <IconLink href="https://wa.me/5521912345678" target="_blank" rel="noopener noreferrer" title="WhatsApp" aria-label="WhatsApp"><i className="fa-brands fa-whatsapp"></i></IconLink>
         </SocialIcons>
       </FooterCol>
     </FooterFlex>
