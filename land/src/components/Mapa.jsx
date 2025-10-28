@@ -256,8 +256,14 @@ const FavoriteButton = styled.button`
   }
 `;
 
-// Função para obter o caminho correto dos ícones (caminho relativo — defensivo para evitar duplicações de base)
-const getIconUrl = (file) => `markers_icons/${file}`;
+// Base para assets GPX e ícones.
+// Em produção (GitHub Pages) os arquivos públicos estão dentro da pasta `Greenlandpage/` no dist
+// (por conta da estrutura `public/Greenlandpage/...`). Em desenvolvimento usamos caminhos relativos.
+const markersBase = import.meta.env.PROD ? `${import.meta.env.BASE_URL}Greenlandpage/markers/` : `markers/`;
+const markersIconsBase = import.meta.env.PROD ? `${import.meta.env.BASE_URL}Greenlandpage/markers_icons/` : `markers_icons/`;
+
+// Função para obter o caminho correto dos ícones
+const getIconUrl = (file) => `${markersIconsBase}${file}`;
 
 // Componente para carregar e exibir GPX
 const GPXTrack = ({ gpxFile, color, onLoaded }) => {
@@ -344,7 +350,7 @@ const Mapa = () => {
   const isFav = favorited.some(fav => fav.id === trilhaSelecionada.label);
 
   useEffect(() => {
-  const gpxFile = `markers/file${carouselIndex+1}.gpx`;
+  const gpxFile = `${markersBase}file${carouselIndex+1}.gpx`;
     getStartEndFromGPX(gpxFile, (start, end) => setStartEnd({start, end}));
     getTrackPointsFromGPX(gpxFile, setTrackPoints);
   }, [carouselIndex]);
