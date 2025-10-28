@@ -18,7 +18,7 @@ L.Icon.Default.mergeOptions({
 
 // Função para escolher o ícone do marcador conforme a dificuldade
 function getCustomIcon(dificuldade) {
-  let iconUrl = '/Greenlandpage/markers_icons/location-pin.png';
+  let iconUrl = `${import.meta.env.BASE_URL}markers_icons/location-pin.png`;
   let iconColor = '#43A047';
   if (dificuldade === 'Moderada') iconColor = '#FFD600';
   if (dificuldade === 'Difícil') iconColor = '#E53935';
@@ -257,7 +257,7 @@ const FavoriteButton = styled.button`
 `;
 
 // Função para obter o caminho correto dos ícones
-const getIconUrl = (file) => `${import.meta.env.BASE_URL}Greenlandpage/markers_icons/${file}`;
+const getIconUrl = (file) => `${import.meta.env.BASE_URL}markers_icons/${file}`;
 
 // Componente para carregar e exibir GPX
 const GPXTrack = ({ gpxFile, color, onLoaded }) => {
@@ -344,7 +344,7 @@ const Mapa = () => {
   const isFav = favorited.some(fav => fav.id === trilhaSelecionada.label);
 
   useEffect(() => {
-    const gpxFile = `${import.meta.env.BASE_URL}Greenlandpage/markers/file${carouselIndex+1}.gpx`;
+    const gpxFile = `${import.meta.env.BASE_URL}markers/file${carouselIndex+1}.gpx`;
     getStartEndFromGPX(gpxFile, (start, end) => setStartEnd({start, end}));
     getTrackPointsFromGPX(gpxFile, setTrackPoints);
   }, [carouselIndex]);
