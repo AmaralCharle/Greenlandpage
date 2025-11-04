@@ -133,6 +133,7 @@ function getStartEndFromGPX(gpxFile, callback) {
       console.error('Erro geral ao processar GPX:', gpxFile, err);
       callback(null, null);
     });
+
 }
 
 // Função utilitária para extrair todos os pontos do GPX
