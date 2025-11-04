@@ -16,9 +16,45 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
+// Base para assets GPX e ícones.
+// Tentamos resolver de forma robusta para produção (GitHub Pages) e desenvolvimento:
+// - Se a página estiver hospedada em '/Greenlandpage/' (ou similar), usamos window.location.pathname
+//   para montar '/Greenlandpage/markers/...'. Caso contrário, tentamos usar import.meta.env.BASE_URL.
+// - Isso cobre situações em que o `dist` contém uma pasta 'Greenlandpage/' mas o index.html
+//   fica no root (cenário que causou 404s com paths incorretos).
+const computeSiteBase = () => {
+  if (typeof window !== 'undefined') {
+    const p = window.location.pathname;
+    // Se a url já inclui /Greenlandpage/ use-a como base
+    if (p.includes('/Greenlandpage/')) {
+      // retorna a parte até e incluindo '/Greenlandpage/' para evitar duplicação
+      const idx = p.indexOf('/Greenlandpage/');
+      return p.slice(0, idx + '/Greenlandpage/'.length);
+    }
+    // fallback para import.meta.env.BASE_URL quando disponível
+  }
+  return import.meta.env.BASE_URL || '/';
+};
+
+const SITE_BASE = computeSiteBase();
+// Tentativas possíveis (candidatas).
+// Observação: em alguns deploys os assets estão em '/Greenlandpage/Greenlandpage/...'
+// — preferimos testar primeiro esse caminho em produção para evitar 404s.
+const markersBaseCandidates = import.meta.env.PROD
+  ? [`${SITE_BASE}Greenlandpage/markers/`, `${SITE_BASE}markers/`]
+  : [`${SITE_BASE}markers/`, `${SITE_BASE}Greenlandpage/markers/`];
+const markersIconsBaseCandidates = import.meta.env.PROD
+  ? [`${SITE_BASE}Greenlandpage/markers_icons/`, `${SITE_BASE}markers_icons/`]
+  : [`${SITE_BASE}markers_icons/`, `${SITE_BASE}Greenlandpage/markers_icons/`];
+
+// Estados para a base efetiva encontrada (testados em runtime)
+// Inicializamos com um default que já favorece o caminho duplicado em produção.
+const defaultMarkersBase = markersBaseCandidates[0];
+const defaultMarkersIconsBase = markersIconsBaseCandidates[0];
+
 // Função para escolher o ícone do marcador conforme a dificuldade
 function getCustomIcon(dificuldade) {
-  let iconUrl = `markers_icons/location-pin.png`;
+  let iconUrl = `${defaultMarkersIconsBase}location-pin.png`;
   let iconColor = '#43A047';
   if (dificuldade === 'Moderada') iconColor = '#FFD600';
   if (dificuldade === 'Difícil') iconColor = '#E53935';
@@ -41,7 +77,7 @@ function getStartEndFromGPX(gpxFile, callback) {
       if (!res.ok) {
         console.error('Erro ao buscar GPX:', gpxFile, res.status);
         callback(null, null);
-        return { text: () => '' };
+        return '';
       }
       return res.text();
     })
@@ -50,14 +86,20 @@ function getStartEndFromGPX(gpxFile, callback) {
       try {
         const parser = new window.DOMParser();
         const xml = parser.parseFromString(str, 'application/xml');
-        const trkpts = xml.getElementsByTagName('trkpt');
-        if (trkpts.length > 1) {
+        // Tenta obter por namespace e sem namespace (compatibilidade)
+        let trkpts = xml.getElementsByTagName('trkpt');
+        if (!trkpts || trkpts.length === 0) {
+          // tenta por namespace GPX 1.1
+          trkpts = xml.getElementsByTagNameNS('http://www.topografix.com/GPX/1/1', 'trkpt') || [];
+        }
+        // Se ainda nada, pode ser que o fetch tenha retornado HTML (arquivo não encontrado) — detecte isso
+        if (trkpts && trkpts.length > 1) {
           const start = [parseFloat(trkpts[0].getAttribute('lat')), parseFloat(trkpts[0].getAttribute('lon'))];
           const end = [parseFloat(trkpts[trkpts.length-1].getAttribute('lat')), parseFloat(trkpts[trkpts.length-1].getAttribute('lon'))];
           console.log('GPX OK:', gpxFile, 'start', start, 'end', end, 'trkpt count', trkpts.length);
           callback(start, end);
         } else {
-          console.warn('GPX sem trkpt suficiente:', gpxFile, 'trkpt count', trkpts.length);
+          console.warn('GPX sem trkpt suficiente:', gpxFile, 'trkpt count', trkpts ? trkpts.length : 0);
           callback(null, null);
         }
       } catch (e) {
@@ -74,21 +116,32 @@ function getStartEndFromGPX(gpxFile, callback) {
 // Função utilitária para extrair todos os pontos do GPX
 function getTrackPointsFromGPX(gpxFile, callback) {
   fetch(gpxFile)
-    .then(res => res.text())
-    .then(str => {
-      const parser = new window.DOMParser();
-      const xml = parser.parseFromString(str, 'application/xml');
-      const trkpts = xml.getElementsByTagName('trkpt');
-      const points = [];
-      for (let i = 0; i < trkpts.length; i++) {
-        points.push([
-          parseFloat(trkpts[i].getAttribute('lat')),
-          parseFloat(trkpts[i].getAttribute('lon'))
-        ]);
-      }
-      callback(points);
+    .then(res => {
+      if (!res.ok) return '';
+      return res.text();
     })
-    .catch(() => callback([]));
+    .then(str => {
+      if (!str) { callback([]); return; }
+      try {
+        const parser = new window.DOMParser();
+        const xml = parser.parseFromString(str, 'application/xml');
+        let trkpts = xml.getElementsByTagName('trkpt');
+        if (!trkpts || trkpts.length === 0) {
+          trkpts = xml.getElementsByTagNameNS('http://www.topografix.com/GPX/1/1', 'trkpt') || [];
+        }
+        const points = [];
+        for (let i = 0; i < trkpts.length; i++) {
+          const lat = parseFloat(trkpts[i].getAttribute('lat'));
+          const lon = parseFloat(trkpts[i].getAttribute('lon'));
+          if (!isNaN(lat) && !isNaN(lon)) points.push([lat, lon]);
+        }
+        callback(points);
+      } catch (e) {
+        console.error('Erro ao parsear pontos GPX:', gpxFile, e);
+        callback([]);
+      }
+    })
+    .catch((err) => { console.error('Erro fetching GPX:', gpxFile, err); callback([]); });
 }
 
 const trilhas = [
@@ -256,14 +309,10 @@ const FavoriteButton = styled.button`
   }
 `;
 
-// Base para assets GPX e ícones.
-// Em produção (GitHub Pages) os arquivos públicos estão dentro da pasta `Greenlandpage/` no dist
-// (por conta da estrutura `public/Greenlandpage/...`). Em desenvolvimento usamos caminhos relativos.
-const markersBase = import.meta.env.PROD ? `${import.meta.env.BASE_URL}Greenlandpage/markers/` : `markers/`;
-const markersIconsBase = import.meta.env.PROD ? `${import.meta.env.BASE_URL}Greenlandpage/markers_icons/` : `markers_icons/`;
-
-// Função para obter o caminho correto dos ícones
-const getIconUrl = (file) => `${markersIconsBase}${file}`;
+// Função para obter o caminho correto dos ícones (fallback)
+// Em runtime o componente `Mapa` irá detectar a base correta (selectedIconsBase)
+// e usar esse valor preferencialmente. Aqui mantemos um fallback estático.
+const getIconUrl = (file) => `${defaultMarkersIconsBase}${file}`;
 
 // Componente para carregar e exibir GPX
 const GPXTrack = ({ gpxFile, color, onLoaded }) => {
@@ -327,11 +376,59 @@ const Mapa = () => {
   const [zoomLevel, setZoomLevel] = useState(13);
   const [favorited, setFavorited] = useState([]);
   const [tileError, setTileError] = useState(false);
+  const [tileProvider, setTileProvider] = useState('esri'); // 'esri' or 'osm'
   const [mapKey, setMapKey] = useState(0);
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('user');
     return saved ? JSON.parse(saved) : null;
   });
+
+  // Base efetiva escolhida em runtime (pode diferir do default se o deploy criou uma pasta extra)
+  const [selectedMarkersBase, setSelectedMarkersBase] = useState(defaultMarkersBase);
+  const [selectedIconsBase, setSelectedIconsBase] = useState(defaultMarkersIconsBase);
+  const [ready, setReady] = useState(false);
+
+  // Testa os candidatos (HEAD) e escolhe o primeiro que responde 200.
+  // Agora rodamos a probe antes de renderizar o mapa (evita fetchs iniciais com base errada).
+  useEffect(() => {
+    let mounted = true;
+    const probe = async () => {
+      try {
+        // Checa cada candidato tentando obter o arquivo e verificando se o conteúdo parece um GPX válido
+      for (const c of markersBaseCandidates) {
+          try {
+            const url = c + 'file1.gpx';
+            const res = await fetch(url);
+            if (!res.ok) continue;
+            const text = await res.text();
+            if (!mounted) break;
+            if (typeof text === 'string' && (text.includes('<trkpt') || text.includes('<gpx')) ) {
+              setSelectedMarkersBase(c);
+              console.log('probe: selected markers base ->', c);
+              break;
+            }
+          } catch (e) {
+            // ignore per-candidate errors
+          }
+        }
+
+        // Checa ícones por GET simples (alguns servidores não respondem a HEAD)
+        for (const c of markersIconsBaseCandidates) {
+          try {
+            const url = c + 'location-pin.png';
+            const res = await fetch(url);
+            if (res && res.ok && mounted) { setSelectedIconsBase(c); console.log('probe: selected icons base ->', c); break; }
+          } catch (e) { /* ignore */ }
+        }
+        // logs para depuração local
+        console.debug('Selected markers base:', selectedMarkersBase, 'selected icons base (candidate):', selectedIconsBase);
+      } finally {
+        if (mounted) setReady(true);
+      }
+    };
+    probe();
+    return () => { mounted = false; };
+  }, []);
 
   // Funções para navegação do carrossel
   const handlePrev = () => {
@@ -350,10 +447,11 @@ const Mapa = () => {
   const isFav = favorited.some(fav => fav.id === trilhaSelecionada.label);
 
   useEffect(() => {
-  const gpxFile = `${markersBase}file${carouselIndex+1}.gpx`;
+    if (!ready) return; // espera a probe terminar
+    const gpxFile = `${selectedMarkersBase}file${carouselIndex+1}.gpx`;
     getStartEndFromGPX(gpxFile, (start, end) => setStartEnd({start, end}));
     getTrackPointsFromGPX(gpxFile, setTrackPoints);
-  }, [carouselIndex]);
+  }, [carouselIndex, selectedMarkersBase, ready]);
 
   useEffect(() => {
     // Atualiza favoritos ao trocar trilha
@@ -390,6 +488,15 @@ const Mapa = () => {
     localStorage.setItem('favorites', JSON.stringify(favs));
     setFavorited(favs);
   };
+
+  if (!ready) {
+    return (
+      <MapWrapper>
+        <MapTitle>Carregando mapa…</MapTitle>
+        <div style={{padding:40, textAlign:'center'}}>Verificando localização dos recursos. Aguarde um instante.</div>
+      </MapWrapper>
+    );
+  }
 
   return (
     <MapWrapper>
@@ -448,8 +555,12 @@ const Mapa = () => {
             {/* Tile server: prefer Esri imagery in production, fallback to OpenStreetMap in dev or on error */}
             <TileLayer
               key={mapKey}
-              url={(!import.meta.env.PROD || tileError) ? "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" : "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"}
-              attribution={( !import.meta.env.PROD || tileError) ? "© OpenStreetMap contributors" : "Tiles © Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"}
+              url={
+                tileProvider === 'esri' && !tileError
+                  ? "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                  : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              }
+              attribution={tileProvider === 'esri' && !tileError ? "Tiles © Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community" : "© OpenStreetMap contributors"}
               updateWhenIdle={true}
               updateWhenZooming={false}
               updateInterval={1000}
@@ -457,7 +568,7 @@ const Mapa = () => {
               maxZoom={17}
               eventHandlers={{
                 tileerror: () => {
-                  console.warn('Tile load error detected, switching to fallback tiles');
+                  console.warn('Tile load error detected for provider', tileProvider, ', switching to fallback tiles');
                   setTileError(true);
                 }
               }}
@@ -468,10 +579,18 @@ const Mapa = () => {
                 <div style={{fontSize:13,opacity:0.9,marginBottom:8}}>Trocando para camadas de mapa alternativas. Se o problema continuar, verifique sua conexão ou bloqueios de CORS.</div>
                 <div style={{display:'flex',gap:8}}>
                   <button className="btn" onClick={() => { setTileError(false); setMapKey(k => k+1); }}>Tentar novamente</button>
-                  <button className="btn btn-outline" onClick={() => { setTileError(false); setMapKey(k => k+1); }}>Forçar fallback</button>
+                  <button className="btn btn-outline" onClick={() => { setTileProvider('osm'); setTileError(false); setMapKey(k => k+1); }}>Forçar fallback (OSM)</button>
                 </div>
               </div>
             )}
+
+            {/* Pequeno controle para alternar provedores de tiles (útil para desenvolvimento) */}
+            <div style={{position:'absolute', right:12, top:12, zIndex:999}}>
+              <div style={{display:'flex', gap:6}}>
+                <button className="btn" onClick={() => { setTileProvider('esri'); setTileError(false); setMapKey(k => k+1); }} style={{padding:'6px 8px', fontSize:12}}>Imagery</button>
+                <button className="btn btn-outline" onClick={() => { setTileProvider('osm'); setTileError(false); setMapKey(k => k+1); }} style={{padding:'6px 8px', fontSize:12}}>OSM</button>
+              </div>
+            </div>
             {/* Linha do percurso real da trilha (GPX) */}
             {trackPoints.length > 1 && (
               <Polyline positions={trackPoints} pathOptions={{ color: '#1976d2', weight: 4, opacity: 0.8 }} />
@@ -487,7 +606,7 @@ const Mapa = () => {
             {startEnd.start && (
               <Marker
                 position={startEnd.start}
-                icon={L.icon({ iconUrl: getIconUrl('location-pin.png'), iconSize: [44, 56], iconAnchor: [22, 52], popupAnchor: [0, -40], shadowUrl: markerShadow, shadowSize: [44, 56] })}
+                icon={L.icon({ iconUrl: `${selectedIconsBase}location-pin.png`, iconSize: [44, 56], iconAnchor: [22, 52], popupAnchor: [0, -40], shadowUrl: markerShadow, shadowSize: [44, 56] })}
               >
                 <Popup>
                   <div style={{textAlign:'center'}}>
@@ -501,7 +620,7 @@ const Mapa = () => {
             {startEnd.end && (
               <Marker
                 position={startEnd.end}
-                icon={L.icon({ iconUrl: getIconUrl('flag.png'), iconSize: [44, 56], iconAnchor: [22, 52], popupAnchor: [0, -40], shadowUrl: markerShadow, shadowSize: [44, 56] })}
+                icon={L.icon({ iconUrl: `${selectedIconsBase}flag.png`, iconSize: [44, 56], iconAnchor: [22, 52], popupAnchor: [0, -40], shadowUrl: markerShadow, shadowSize: [44, 56] })}
               >
                 <Popup>
                   <div style={{textAlign:'center'}}>
@@ -518,14 +637,14 @@ const Mapa = () => {
                   key={trilha.label}
                   position={trilha.pos}
                   icon={L.icon({
-                    iconUrl: getIconUrl('location-pin.png'),
-                    iconSize: [28, 36],
-                    iconAnchor: [14, 34],
-                    popupAnchor: [0, -30],
-                    shadowUrl: markerShadow,
-                    shadowSize: [28, 36],
-                    className: 'marker-outro'
-                  })}
+                      iconUrl: `${selectedIconsBase}location-pin.png`,
+                      iconSize: [28, 36],
+                      iconAnchor: [14, 34],
+                      popupAnchor: [0, -30],
+                      shadowUrl: markerShadow,
+                      shadowSize: [28, 36],
+                      className: 'marker-outro'
+                    })}
                 >
                   <Popup>
                     <strong>{trilha.label}</strong><br/>
