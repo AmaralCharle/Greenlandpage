@@ -376,7 +376,7 @@ const Mapa = () => {
   const [zoomLevel, setZoomLevel] = useState(13);
   const [favorited, setFavorited] = useState([]);
   const [tileError, setTileError] = useState(false);
-  const [tileProvider, setTileProvider] = useState('esri'); // 'esri' or 'osm'
+  const [tileProvider, setTileProvider] = useState('osm'); // default to 'osm' to avoid blank tiles
   const [mapKey, setMapKey] = useState(0);
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('user');
@@ -427,6 +427,26 @@ const Mapa = () => {
       }
     };
     probe();
+    return () => { mounted = false; };
+  }, []);
+
+  // Test availability of ESRI imagery tiles (use Image element to avoid CORS issues with fetch)
+  useEffect(() => {
+    // Only try to probe ESRI in production; keep OSM default in dev for reliability
+    if (!import.meta.env.PROD) return;
+    let mounted = true;
+    try {
+      const img = new Image();
+      // sample tile coordinates (z/y/x)
+      const sample = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/10/300/400';
+      img.onload = () => { if (mounted) { setTileProvider('esri'); setTileError(false); console.log('Tile probe: ESRI imagery available'); } };
+      img.onerror = () => { if (mounted) { setTileProvider('osm'); setTileError(true); console.warn('Tile probe: ESRI imagery not available, using OSM'); } };
+      img.src = sample;
+    } catch (e) {
+      console.warn('Tile probe error', e);
+      setTileProvider('osm');
+      setTileError(true);
+    }
     return () => { mounted = false; };
   }, []);
 
