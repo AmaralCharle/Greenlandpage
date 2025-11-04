@@ -52,9 +52,31 @@ const markersIconsBaseCandidates = import.meta.env.PROD
 const defaultMarkersBase = markersBaseCandidates[0];
 const defaultMarkersIconsBase = markersIconsBaseCandidates[0];
 
+// Utility: normalize a base path to avoid duplicated segments like '/Greenlandpage/Greenlandpage/'
+const normalizeBase = (c) => {
+  if (!c) return c;
+  let p = String(c).replace(/\/+/g, '/');
+  try {
+    if (SITE_BASE && p.startsWith(SITE_BASE + SITE_BASE)) {
+      p = p.replace(SITE_BASE + SITE_BASE, SITE_BASE);
+    }
+  } catch (e) { /* ignore */ }
+  if (!p.endsWith('/')) p = p + '/';
+  return p;
+};
+
+// Build absolute URL for an asset (avoids relative path ambiguity)
+const makeAbsoluteUrl = (base, file) => {
+  if (!base) return file;
+  const b = normalizeBase(base);
+  if (/^https?:\/\//.test(b)) return b + file;
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  return origin + (b.startsWith('/') ? b : '/' + b) + file;
+};
+
 // Função para escolher o ícone do marcador conforme a dificuldade
 function getCustomIcon(dificuldade) {
-  let iconUrl = `${defaultMarkersIconsBase}location-pin.png`;
+  let iconUrl = makeAbsoluteUrl(defaultMarkersIconsBase, 'location-pin.png');
   let iconColor = '#43A047';
   if (dificuldade === 'Moderada') iconColor = '#FFD600';
   if (dificuldade === 'Difícil') iconColor = '#E53935';
@@ -392,10 +414,13 @@ const Mapa = () => {
   // Agora rodamos a probe antes de renderizar o mapa (evita fetchs iniciais com base errada).
   useEffect(() => {
     let mounted = true;
+    // probe utilizará os helpers `normalizeBase` e `makeAbsoluteUrl` definidos no escopo do módulo
+
     const probe = async () => {
       try {
         // Checa cada candidato tentando obter o arquivo e verificando se o conteúdo parece um GPX válido
-      for (const c of markersBaseCandidates) {
+        for (const cRaw of markersBaseCandidates) {
+          const c = normalizeBase(cRaw);
           try {
             const url = c + 'file1.gpx';
             const res = await fetch(url);
@@ -403,8 +428,9 @@ const Mapa = () => {
             const text = await res.text();
             if (!mounted) break;
             if (typeof text === 'string' && (text.includes('<trkpt') || text.includes('<gpx')) ) {
-              setSelectedMarkersBase(c);
-              console.log('probe: selected markers base ->', c);
+              const normalized = normalizeBase(c);
+              setSelectedMarkersBase(normalized);
+              console.log('probe: selected markers base ->', normalized);
               break;
             }
           } catch (e) {
@@ -413,11 +439,12 @@ const Mapa = () => {
         }
 
         // Checa ícones por GET simples (alguns servidores não respondem a HEAD)
-        for (const c of markersIconsBaseCandidates) {
+        for (const cRaw of markersIconsBaseCandidates) {
+          const c = normalizeBase(cRaw);
           try {
-            const url = c + 'location-pin.png';
+            const url = makeAbsoluteUrl(c, 'location-pin.png');
             const res = await fetch(url);
-            if (res && res.ok && mounted) { setSelectedIconsBase(c); console.log('probe: selected icons base ->', c); break; }
+            if (res && res.ok && mounted) { const normalized = normalizeBase(c); setSelectedIconsBase(normalized); console.log('probe: selected icons base ->', normalized); break; }
           } catch (e) { /* ignore */ }
         }
         // logs para depuração local
@@ -626,7 +653,7 @@ const Mapa = () => {
             {startEnd.start && (
               <Marker
                 position={startEnd.start}
-                icon={L.icon({ iconUrl: `${selectedIconsBase}location-pin.png`, iconSize: [44, 56], iconAnchor: [22, 52], popupAnchor: [0, -40], shadowUrl: markerShadow, shadowSize: [44, 56] })}
+                icon={L.icon({ iconUrl: makeAbsoluteUrl(selectedIconsBase, 'location-pin.png'), iconSize: [44, 56], iconAnchor: [22, 52], popupAnchor: [0, -40], shadowUrl: markerShadow, shadowSize: [44, 56] })}
               >
                 <Popup>
                   <div style={{textAlign:'center'}}>
@@ -640,7 +667,7 @@ const Mapa = () => {
             {startEnd.end && (
               <Marker
                 position={startEnd.end}
-                icon={L.icon({ iconUrl: `${selectedIconsBase}flag.png`, iconSize: [44, 56], iconAnchor: [22, 52], popupAnchor: [0, -40], shadowUrl: markerShadow, shadowSize: [44, 56] })}
+                icon={L.icon({ iconUrl: makeAbsoluteUrl(selectedIconsBase, 'flag.png'), iconSize: [44, 56], iconAnchor: [22, 52], popupAnchor: [0, -40], shadowUrl: markerShadow, shadowSize: [44, 56] })}
               >
                 <Popup>
                   <div style={{textAlign:'center'}}>
@@ -657,7 +684,7 @@ const Mapa = () => {
                   key={trilha.label}
                   position={trilha.pos}
                   icon={L.icon({
-                      iconUrl: `${selectedIconsBase}location-pin.png`,
+                      iconUrl: makeAbsoluteUrl(selectedIconsBase, 'location-pin.png'),
                       iconSize: [28, 36],
                       iconAnchor: [14, 34],
                       popupAnchor: [0, -30],
