@@ -31,13 +31,10 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-    <script>
-      (function(d){
-        var s = d.createElement("script");
-        s.setAttribute("data-account", "4Qw6Qw6Qw6");
-        s.src="https://cdn.userway.org/widget.js";
-        (d.body || d.head).appendChild(s);
-      })(document)
-    </script>
+    <!-- UserWay widget removed temporarily because some third-party accessibility widgets
+         use dynamic code-evaluation (eval/new Function) which can be blocked by a
+         restrictive Content-Security-Policy and may prevent other scripts (map tiles/plugins)
+         from running correctly. If you rely on this widget, consider hosting a CSP-safe
+         alternative or allowing it explicitly in your CSP after validating risks. -->
   </body>
 </html>
