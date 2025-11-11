@@ -669,3 +669,20 @@ header .container {
     .community-highlights { gap: 8px; }
     .highlight-box { flex-basis: 100%; }
 }
+
+/* Forçar visibilidade dos tiles do Leaflet quando estratégias de blend ou z-index
+   da folha de estilos de terceiros estiverem tornando-os invisíveis. Esta regra
+   é segura: apenas normaliza mix-blend-mode/opacidade/display e ajusta z-index
+   para que as tiles fiquem acima do fundo do container. */
+.leaflet-container img.leaflet-tile {
+    mix-blend-mode: normal !important;
+    opacity: 1 !important;
+    display: block !important;
+}
+.leaflet-tile-pane {
+    z-index: 1 !important;
+}
+.leaflet-overlay-pane,
+.leaflet-shadow-pane {
+    z-index: 0 !important;
+}

@@ -40,12 +40,16 @@ const SITE_BASE = computeSiteBase();
 // Tentativas possíveis (candidatas).
 // Observação: em alguns deploys os assets estão em '/Greenlandpage/Greenlandpage/...'
 // — preferimos testar primeiro esse caminho em produção para evitar 404s.
+// Em dev o vite serve arquivos de `public/` no root '/', então incluímos
+// explicitamente os caminhos sem o `SITE_BASE` antes dos candidatos com base.
+// Prioritize the candidate that matches the common "public/Greenlandpage/..." layout
+// which in combination with Vite's base can end up as '/Greenlandpage/Greenlandpage/...'.
 const markersBaseCandidates = import.meta.env.PROD
   ? [`${SITE_BASE}Greenlandpage/markers/`, `${SITE_BASE}markers/`]
-  : [`${SITE_BASE}markers/`, `${SITE_BASE}Greenlandpage/markers/`];
+  : [`${SITE_BASE}Greenlandpage/markers/`, `/Greenlandpage/markers/`, `${SITE_BASE}markers/`, '/markers/'];
 const markersIconsBaseCandidates = import.meta.env.PROD
   ? [`${SITE_BASE}Greenlandpage/markers_icons/`, `${SITE_BASE}markers_icons/`]
-  : [`${SITE_BASE}markers_icons/`, `${SITE_BASE}Greenlandpage/markers_icons/`];
+  : [`${SITE_BASE}Greenlandpage/markers_icons/`, `/Greenlandpage/markers_icons/`, `${SITE_BASE}markers_icons/`, '/markers_icons/'];
 
 // Estados para a base efetiva encontrada (testados em runtime)
 // Inicializamos com um default que já favorece o caminho duplicado em produção.
@@ -56,11 +60,12 @@ const defaultMarkersIconsBase = markersIconsBaseCandidates[0];
 const normalizeBase = (c) => {
   if (!c) return c;
   let p = String(c).replace(/\/+/g, '/');
-  try {
-    if (SITE_BASE && p.startsWith(SITE_BASE + SITE_BASE)) {
-      p = p.replace(SITE_BASE + SITE_BASE, SITE_BASE);
-    }
-  } catch (e) { /* ignore */ }
+  // NÃO substituir automaticamente duplicações de SITE_BASE aqui.
+  // Em alguns deploys válidos os assets podem residir em
+  // '/Greenlandpage/Greenlandpage/...' e remover a duplicação
+  // de forma automática pode apontar para o index.html (causando 200
+  // com HTML) — preferimos preservar o caminho original e confiar na
+  // probe para detectar qual candidato realmente serve o asset.
   if (!p.endsWith('/')) p = p + '/';
   return p;
 };
@@ -97,7 +102,8 @@ function getStartEndFromGPX(gpxFile, callback) {
   fetch(gpxFile)
     .then(res => {
       if (!res.ok) {
-        console.error('Erro ao buscar GPX:', gpxFile, res.status);
+        // aviso discreto — evita poluir o console com erros controlados
+        console.warn('GPX não encontrado (provável 404):', gpxFile, res.status);
         callback(null, null);
         return '';
       }
@@ -125,12 +131,12 @@ function getStartEndFromGPX(gpxFile, callback) {
           callback(null, null);
         }
       } catch (e) {
-        console.error('Erro ao parsear GPX:', gpxFile, e);
+        console.warn('Erro ao parsear GPX (XML inválido?):', gpxFile, e);
         callback(null, null);
       }
     })
     .catch(err => {
-      console.error('Erro geral ao processar GPX:', gpxFile, err);
+      console.warn('Erro geral ao processar GPX:', gpxFile, err);
       callback(null, null);
     });
 
@@ -160,11 +166,11 @@ function getTrackPointsFromGPX(gpxFile, callback) {
         }
         callback(points);
       } catch (e) {
-        console.error('Erro ao parsear pontos GPX:', gpxFile, e);
+        console.warn('Erro ao parsear pontos GPX:', gpxFile, e);
         callback([]);
       }
     })
-    .catch((err) => { console.error('Erro fetching GPX:', gpxFile, err); callback([]); });
+    .catch((err) => { console.warn('Erro fetching GPX:', gpxFile, err); callback([]); });
 }
 
 const trilhas = [
@@ -382,12 +388,74 @@ const MapEvents = ({ onZoom }) => {
   return null;
 };
 
+// Component that invalidates map size once mounted and logs some diagnostics
+const MapDiagnostics = ({ onReadyLog }) => {
+  const map = useMap();
+  useEffect(() => {
+    try {
+      // force Leaflet to recalc sizes (fixes tiles not filling container)
+      // call twice with a small delay to handle CSS transitions/layout shifts
+      map.invalidateSize();
+      setTimeout(() => map.invalidateSize(), 120);
+      const size = map.getSize ? map.getSize() : null;
+      const bounds = map.getBounds ? map.getBounds().toBBoxString() : null;
+      console.info('Mapa: invalidateSize called; size=', size, 'bounds=', bounds);
+      // diagnostics: check tile imgs inside the container
+      try {
+        const container = map.getContainer();
+        const tiles = container ? container.querySelectorAll('img.leaflet-tile') : [];
+        const tileInfos = Array.from(tiles).slice(0, 12).map(t => ({ src: t.src, rect: t.getBoundingClientRect(), display: getComputedStyle(t).display, opacity: getComputedStyle(t).opacity }));
+        console.info('Mapa: tile count=', tiles.length, 'sample tiles=', tileInfos);
+      } catch (e) {
+        console.warn('Mapa: tile diagnostic failed', e);
+      }
+      if (onReadyLog) onReadyLog({ size, bounds });
+    } catch (e) {
+      console.warn('Mapa: diagnostic invalidateSize failed', e);
+    }
+  }, [map, onReadyLog]);
+  return null;
+};
+
+// Quando os pontos da trilha mudam, força recalculo de layout e garante que
+// as polylines/panels fiquem na frente para evitar que tiles (por algum estilo)
+// acabem sobrepondo as linhas durante reflows/zooms.
+const TrackRefresh = ({ trackPoints }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (!map) return;
+    try {
+      // invalida e chama de novo com delay para garantir recalculo do layout
+      map.invalidateSize();
+      setTimeout(() => map.invalidateSize(), 120);
+      // tenta trazer todas as polylines para frente
+      map.eachLayer((layer) => {
+        try {
+          if (layer instanceof L.Polyline) {
+            if (typeof layer.bringToFront === 'function') layer.bringToFront();
+          }
+        } catch (e) { /* ignore */ }
+      });
+    } catch (e) {
+      // nada crítico - apenas log curto para debug
+      console.debug('TrackRefresh: falha ao forçar repaint', e);
+    }
+  }, [map, trackPoints]);
+  return null;
+};
+
+// Nota: remoção de EnsureTrilhasPane e useVerifiedIconBase — essas tentativas
+// causaram regressões visuais (mapa branco) em alguns ambientes. Mantemos
+// o TrackRefresh (repaint/bringToFront) que melhora estabilidade das linhas.
+
 // Recentra o mapa quando a posição alvo muda
 const CenterOn = ({ position, zoom }) => {
   const map = useMap();
   useEffect(() => {
     if (!position) return;
-    map.setView(position, zoom ?? 13, { animate: true });
+    // Use non-animated setView to avoid animation-related rendering conflicts
+    // that can hide overlays during transitions.
+    map.setView(position, zoom ?? 13, { animate: false });
   }, [position, zoom, map]);
   return null;
 };
@@ -396,10 +464,13 @@ const Mapa = () => {
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [startEnd, setStartEnd] = useState({start: null, end: null});
   const [trackPoints, setTrackPoints] = useState([]);
+  const [gpxFallbackFile, setGpxFallbackFile] = useState(null);
   const [zoomLevel, setZoomLevel] = useState(13);
   const [favorited, setFavorited] = useState([]);
   const [tileError, setTileError] = useState(false);
-  const [tileProvider, setTileProvider] = useState('osm'); // default to 'osm' to avoid blank tiles
+  // Default to ESRI imagery (similar visual to Google Earth). If ESRI
+  // is unavailable tileError handlers will fallback to OSM.
+  const [tileProvider, setTileProvider] = useState('esri');
   const [mapKey, setMapKey] = useState(0);
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('user');
@@ -407,9 +478,12 @@ const Mapa = () => {
   });
 
   // Base efetiva escolhida em runtime (pode diferir do default se o deploy criou uma pasta extra)
-  const [selectedMarkersBase, setSelectedMarkersBase] = useState(defaultMarkersBase);
-  const [selectedIconsBase, setSelectedIconsBase] = useState(defaultMarkersIconsBase);
+  // Inicializa como null para a probe automática detectar a base correta em runtime.
+  const [selectedMarkersBase, setSelectedMarkersBase] = useState(null);
+  const [selectedIconsBase, setSelectedIconsBase] = useState(null);
   const [ready, setReady] = useState(false);
+  // Nota: não usamos mais verifiedIconsBase aqui — mantemos selectedIconsBase
+  // e o fallback defaultMarkersIconsBase para construir URLs de ícone.
 
   // Testa os candidatos (HEAD) e escolhe o primeiro que responde 200.
   // Agora rodamos a probe antes de renderizar o mapa (evita fetchs iniciais com base errada).
@@ -420,18 +494,18 @@ const Mapa = () => {
     const probe = async () => {
       try {
         // Checa cada candidato tentando obter o arquivo e verificando se o conteúdo parece um GPX válido
+        let foundMarkers = null;
         for (const cRaw of markersBaseCandidates) {
           const c = normalizeBase(cRaw);
           try {
-            const url = c + 'file1.gpx';
+            const url = makeAbsoluteUrl(c, 'file1.gpx');
             const res = await fetch(url);
             if (!res.ok) continue;
             const text = await res.text();
             if (!mounted) break;
             if (typeof text === 'string' && (text.includes('<trkpt') || text.includes('<gpx')) ) {
-              const normalized = normalizeBase(c);
-              setSelectedMarkersBase(normalized);
-              console.log('probe: selected markers base ->', normalized);
+              foundMarkers = normalizeBase(c);
+              console.debug('probe: selected markers base candidate ->', foundMarkers);
               break;
             }
           } catch (e) {
@@ -440,16 +514,33 @@ const Mapa = () => {
         }
 
         // Checa ícones por GET simples (alguns servidores não respondem a HEAD)
+        let foundIcons = null;
         for (const cRaw of markersIconsBaseCandidates) {
           const c = normalizeBase(cRaw);
           try {
             const url = makeAbsoluteUrl(c, 'location-pin.png');
-            const res = await fetch(url);
-            if (res && res.ok && mounted) { const normalized = normalizeBase(c); setSelectedIconsBase(normalized); console.log('probe: selected icons base ->', normalized); break; }
+            const res = await fetch(url, { method: 'GET' });
+            const ct = res && res.headers ? (res.headers.get('content-type') || '') : '';
+            // Aceitamos apenas respostas que parecem realmente imagens
+            if (res && res.ok && /image\//i.test(ct) && mounted) {
+              foundIcons = normalizeBase(c);
+              console.info('probe: selected icons base candidate ->', foundIcons);
+              break;
+            }
           } catch (e) { /* ignore */ }
         }
+
+        // Se nenhum candidato foi encontrado, defina um fallback provável
+        if (mounted) {
+          const finalMarkers = foundMarkers || normalizeBase(markersBaseCandidates[0]);
+          const finalIcons = foundIcons || normalizeBase(markersIconsBaseCandidates[0]);
+          setSelectedMarkersBase(finalMarkers);
+          setSelectedIconsBase(finalIcons);
+          if (!foundMarkers) console.info('probe: nenhum candidato válido encontrado para markers; usando fallback ->', finalMarkers);
+          if (!foundIcons) console.info('probe: nenhum candidato válido encontrado para icons; usando fallback ->', finalIcons);
+        }
         // logs para depuração local
-        console.debug('Selected markers base:', selectedMarkersBase, 'selected icons base (candidate):', selectedIconsBase);
+        console.debug('Selected markers base (final):', foundMarkers, 'selected icons base (final):', foundIcons);
       } finally {
         if (mounted) setReady(true);
       }
@@ -496,9 +587,26 @@ const Mapa = () => {
 
   useEffect(() => {
     if (!ready) return; // espera a probe terminar
-    const gpxFile = `${selectedMarkersBase}file${carouselIndex+1}.gpx`;
+    // Use the selectedMarkersBase when available, otherwise fall back to the
+    // default candidate to avoid requests like 'location-pin.png' or
+    // 'file1.gpx' without a base (which causavam 404s em alguns casos).
+    const baseForGpx = (selectedMarkersBase || defaultMarkersBase);
+    const gpxFile = `${baseForGpx}file${carouselIndex+1}.gpx`;
     getStartEndFromGPX(gpxFile, (start, end) => setStartEnd({start, end}));
-    getTrackPointsFromGPX(gpxFile, setTrackPoints);
+    getTrackPointsFromGPX(gpxFile, (points) => {
+      console.debug('GPX fetch result for', gpxFile, 'points:', points ? points.length : 0);
+      // Se o parser retornou pontos válidos, atualiza trackPoints. Caso contrário,
+      // não limpamos os pontos existentes imediatamente — ativamos apenas o
+      // fallback que usa leaflet-gpx (GPXTrack) para renderizar a trilha.
+      if (points && points.length > 0) {
+        setTrackPoints(points);
+        setGpxFallbackFile(null);
+      } else {
+        console.info('GPX parser returned 0 points, ativando fallback leaflet-gpx para', gpxFile);
+        setGpxFallbackFile(gpxFile);
+        // manter os pontos anteriores até que o fallback desenhe a trilha
+      }
+    });
   }, [carouselIndex, selectedMarkersBase, ready]);
 
   useEffect(() => {
@@ -594,10 +702,13 @@ const Mapa = () => {
             zoomDelta={0.5}
             scrollWheelZoom={true}
             doubleClickZoom={false}
-            key={trilhaSelecionada.label}
+            
             style={{height: '100%', width: '100%', minHeight: 420, minWidth: 320, zIndex: 2, background: '#e5e5e5'}}
-            zoomAnimation={false}
+            zoomAnimation={true}
           >
+            {/* Diagnostics: invalidate size on mount and log tile events */}
+            <MapDiagnostics onReadyLog={(d) => console.debug('map diagnostics', d)} />
+            <TrackRefresh trackPoints={trackPoints} />
             <MapEvents onZoom={setZoomLevel} />
             <CenterOn position={startEnd.start || trilhaSelecionada.pos} zoom={13} />
             {/* Tile server: prefer Esri imagery in production, fallback to OpenStreetMap in dev or on error */}
@@ -610,14 +721,38 @@ const Mapa = () => {
               }
               attribution={tileProvider === 'esri' && !tileError ? "Tiles © Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community" : "© OpenStreetMap contributors"}
               updateWhenIdle={true}
-              updateWhenZooming={false}
-              updateInterval={1000}
-              keepBuffer={2}
+              updateWhenZooming={true}
+              updateInterval={300}
+              keepBuffer={3}
               maxZoom={17}
               eventHandlers={{
-                tileerror: () => {
-                  console.warn('Tile load error detected for provider', tileProvider, ', switching to fallback tiles');
+                tileerror: (ev) => {
+                  console.warn('Tile load error detected for provider', tileProvider, ', switching to fallback tiles', ev);
                   setTileError(true);
+                },
+                tileload: (ev) => {
+                  // log a few tile load events to ensure tiles are actually being fetched
+                  console.debug('Tile loaded', ev && ev.tile && ev.tile.src);
+                }
+                ,
+                // Quando todas as tiles do TileLayer estiverem carregadas para a vista
+                // atual, traz as polylines para frente. Usamos ev.target._map para
+                // recuperar o mapa associado ao TileLayer.
+                load: (ev) => {
+                  try {
+                    const m = ev && ev.target && ev.target._map;
+                    if (m) {
+                      m.eachLayer((layer) => {
+                        try {
+                          if (layer instanceof L.Polyline && typeof layer.bringToFront === 'function') {
+                            layer.bringToFront();
+                          }
+                        } catch (e) { /* ignore per-layer errors */ }
+                      });
+                    }
+                  } catch (e) {
+                    console.debug('TileLayer load handler failed to bring polylines to front', e);
+                  }
                 }
               }}
             />
@@ -643,6 +778,10 @@ const Mapa = () => {
             {trackPoints.length > 1 && (
               <Polyline positions={trackPoints} pathOptions={{ color: '#1976d2', weight: 4, opacity: 0.8 }} />
             )}
+            {/* Fallback: se não temos pontos via parser, renderiza com leaflet-gpx */}
+            {gpxFallbackFile && (
+              <GPXTrack gpxFile={gpxFallbackFile} color="#1976d2" onLoaded={(e) => { console.info('GPXTrack loaded via fallback', gpxFallbackFile); }} />
+            )}
             {/* Linha entre início e fim (opcional, pode remover se quiser só o GPX) */}
             {startEnd.start && startEnd.end && (
               <Polyline
@@ -654,7 +793,7 @@ const Mapa = () => {
             {startEnd.start && (
               <Marker
                 position={startEnd.start}
-                icon={L.icon({ iconUrl: makeAbsoluteUrl(selectedIconsBase, 'location-pin.png'), iconSize: [44, 56], iconAnchor: [22, 52], popupAnchor: [0, -40], shadowUrl: markerShadow, shadowSize: [44, 56] })}
+                icon={L.icon({ iconUrl: makeAbsoluteUrl((selectedIconsBase || defaultMarkersIconsBase), 'location-pin.png'), iconSize: [44, 56], iconAnchor: [22, 52], popupAnchor: [0, -40], shadowUrl: markerShadow, shadowSize: [44, 56] })}
               >
                 <Popup>
                   <div style={{textAlign:'center'}}>
@@ -668,7 +807,7 @@ const Mapa = () => {
             {startEnd.end && (
               <Marker
                 position={startEnd.end}
-                icon={L.icon({ iconUrl: makeAbsoluteUrl(selectedIconsBase, 'flag.png'), iconSize: [44, 56], iconAnchor: [22, 52], popupAnchor: [0, -40], shadowUrl: markerShadow, shadowSize: [44, 56] })}
+                icon={L.icon({ iconUrl: makeAbsoluteUrl((selectedIconsBase || defaultMarkersIconsBase), 'flag.png'), iconSize: [44, 56], iconAnchor: [22, 52], popupAnchor: [0, -40], shadowUrl: markerShadow, shadowSize: [44, 56] })}
               >
                 <Popup>
                   <div style={{textAlign:'center'}}>
@@ -684,8 +823,8 @@ const Mapa = () => {
                 <Marker
                   key={trilha.label}
                   position={trilha.pos}
-                  icon={L.icon({
-                      iconUrl: makeAbsoluteUrl(selectedIconsBase, 'location-pin.png'),
+        icon={L.icon({
+                      iconUrl: makeAbsoluteUrl((selectedIconsBase || defaultMarkersIconsBase), 'location-pin.png'),
                       iconSize: [28, 36],
                       iconAnchor: [14, 34],
                       popupAnchor: [0, -30],
