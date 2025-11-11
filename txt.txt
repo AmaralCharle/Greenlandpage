@@ -1,0 +1,406 @@
+:root {
+  --verde-escuro: #08420b;
+  --verde-medio: #0daf16;
+  --verde-claro: #2fdb1f;
+  --bege: #f8f4e3;
+  --branco: #ffffff;
+  --sombra: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: var(--bege);
+  color: var(--verde-escuro);
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Navbar manter se for presiso  */
+.navbar {
+  background: var(--verde-escuro);
+  color: var(--branco);
+  padding: 15px 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+/* manter se for presiso  */
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+/* manter se for presiso  */
+.logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+}
+
+/* manter se for presiso  */
+.logo i {
+  margin-right: 10px;
+  color: var(--verde-claro);
+}
+
+/* manter se for presiso  */
+.nav-links {
+  display: flex;
+  list-style: none;
+}
+/* manter se for presiso  */
+.nav-links li {
+  margin-left: 25px;
+}
+/* manter se for presiso  */
+.nav-links a {
+  color: var(--branco);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s, transform 0.3s;
+  display: flex;
+  align-items: center;
+}
+/* manter se for presiso  */
+.nav-links a:hover {
+  color: var(--verde-claro);
+  transform: translateX(5px);
+}
+
+/* manter se for presiso  */
+header {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--verde-medio), var(--verde-escuro));
+  color: var(--branco);
+  padding: 100px 0 120px;
+  text-align: center;
+  clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+  margin-bottom: -40px;
+}
+
+header h1 {
+  font-size: 2.8rem;
+  margin-bottom: 15px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, .3);
+}
+
+/* Manter se for presiso  */
+header p {
+  font-size: 1.2rem;
+  max-width: 700px;
+  margin: 0 auto;
+  opacity: 0.9;
+}
+
+/* Manter se for presiso */
+header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, .4) 50%, transparent 100%);
+  transform: skewX(-60deg);
+  animation: brilho-reflexo 3s ease-in-out infinite;
+  z-index: 0;
+}
+/* Manter se for presiso */
+header .container {
+  position: relative;
+  z-index: 1;
+}
+/* Header com brilho  descartavel Manter se for presiso  */
+@keyframes brilho-reflexo {
+  0% {
+    left: -75%;
+  }
+
+  100% {
+    left: 125%;
+  }
+}
+
+/* --- Carrossel 3D --- inpoortante manter  */
+.trilhas-carousel-3d-wrapper {
+  position: relative;
+  perspective: 2000px;
+  width: 100%;
+  height: 500px;
+  min-height: 60vh; 
+  margin: 60px 0;
+  overflow: visible;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+/* importante manter  */
+.trilhas-carousel-3d {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 1s ease-in-out;
+}
+/* importante manter  */
+.trilhas-carousel-3d .trilha-card {
+  position: absolute;
+  width: 300px;
+  height: auto;
+  min-height: 320px;
+  top: 12%;
+  left: 50%;
+  margin-left: -150px;
+  background: var(--branco);
+  border-radius: 19px;
+  overflow: visible;
+  box-shadow: var(--sombra);
+  transform-origin: center center;
+}
+/* importante manter- botões  */
+.carousel3d-btn {
+  position: absolute;
+  top: 70%;
+  transform: translateY(-50%);
+  background-color: var(--verde-escuro);
+  color: white;
+  border: none;
+  font-size: 2rem;
+  padding: 10px 15px;
+  cursor: pointer;
+  z-index: 2;
+  transition: background 0.3s ease;
+}
+/* importante manter  */
+.carousel3d-btn.left {
+  left: 250px;
+}
+/* importante manter  */
+.carousel3d-btn.right {
+  right: 250px;
+}
+/* manter se presiso */
+.carousel3d-btn:hover {
+  background-color: var(--verde-claro);
+}
+
+/* Cartões (compartilhado com o carrossel)- importante manter */
+.trilha-card {
+  background: var(--branco);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--sombra);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+/* importante manter  */
+.trilha-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, .15);
+}
+
+/* manter se pressiso  */
+.trilha-imagem {
+  height: 200px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+/* manter se pressiso  */
+.trilha-imagem::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(to top, rgba(0, 0, 0, .7), transparent);
+}
+
+/* Cartões (Titulos ou nime das trilhas )- importante manter */
+.trilha-titulo {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  color: #fff;
+  font-size: 1.5rem;
+  z-index: 1;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, .8);
+}
+/* importante manter  */
+.trilha-conteudo {
+  padding: 20px;
+}
+/* importante manter  */
+.trilha-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  font-size: .9rem;
+}
+/* manter se pressiso  */
+.trilha-descricao {
+  margin-bottom: 20px;
+  color: #555;
+}
+
+/* Botões gerais importante manter  */
+.btn {
+  display: inline-block;
+  background: var(--verde-medio);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 30px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: background 0.3s ease;
+  border: none;
+  cursor: pointer;
+}
+
+
+/* Responsivo básico */
+@media (max-width: 900px) {
+  .container {
+    padding: 0 14px;
+  }
+}
+
+.detalhes-ativo {
+  max-height: 500px;
+}
+
+/* --- Footer ---  manter se presiso, pode remover todos os footer e sociais  */
+/* Footer */
+footer {
+  background: var(--verde-escuro);
+  color: #fff;
+  text-align: center;
+  padding: 30px 0;
+  margin-top: 50px;
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  list-style: none;
+  margin: 20px 0;
+}
+
+.footer-links li {
+  margin: 0 15px;
+}
+
+.footer-links a {
+  color: #fff;
+  text-decoration: none;
+  transition: color .3s;
+}
+
+.footer-links a:hover {
+  color: var(--verde-claro);
+}
+
+.social-links {
+  margin: 20px 0;
+}
+
+.social-links a {
+  color: #fff;
+  font-size: 1.5rem;
+  margin: 0 10px;
+  transition: color .3s ease;
+}
+
+.social-links a:hover {
+  color: var(--verde-claro);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 2px solid var(--verde-medio);
+  color: var(--verde-medio);
+}
+/* manter se pressiso */
+.btn-outline:hover {
+  background: var(--verde-medio);
+  color: #fff;
+}
+
+
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+
+/* --- Modal de detalhes --- */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  max-width: 90%;
+  width: 400px;
+  text-align: left;
+  position: relative;
+}
+
+.close-btn {
+  position: absolute;
+  right: 15px;
+  top: 10px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--verde-escuro);
+}
+
+.close-btn:hover {
+  color: var(--verde-claro);
+}
+
+/* --- Responsividade --- */
+@media (max-width: 900px) {
+  .carousel3d-btn {
+    display: none;
+  }
+
+  .trilhas-carousel-3d-wrapper {
+    height: 350px;
+  }
+
+  .trilha-card {
+    width: 80%;
+  }
+}
+
+
