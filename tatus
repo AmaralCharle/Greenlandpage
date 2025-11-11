@@ -1,0 +1,3 @@
+[33m1202add[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m Atualização para verde água: fundo e componente mais suaves
+[33mc0ada39[m Atualização de cores: troca salmão por bege clarinho e cinza claro
+[33m606a575[m Revert paths: usar import.meta.env.BASE_URL para ícones e GPX; manter CenterOn para centralizar ao trocar trilha
