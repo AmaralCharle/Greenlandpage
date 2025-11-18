@@ -206,7 +206,41 @@ const Trilhacard = ({ id, title, image, difficulty, time, distance, description,
 
   useEffect(() => {
     // atualiza imgSrc quando a prop image mudar
-    setImgSrc(buildAbsolute(image) || DEFAULT_SVG);
+    // Pré-carrega a imagem para evitar que o site publicado mostre imagens quebradas
+    const candidate = buildAbsolute(image) || DEFAULT_SVG;
+    let cancelled = false;
+
+    const preloadImage = (src, timeout = 8000) => new Promise((resolve) => {
+      if (!src) return resolve(false);
+      // If it's already the placeholder data URL, resolve true immediately
+      if (src.startsWith('data:image')) return resolve(true);
+      const img = new Image();
+      let timer = null;
+      img.onload = () => {
+        if (timer) clearTimeout(timer);
+        resolve(true);
+      };
+      img.onerror = () => {
+        if (timer) clearTimeout(timer);
+        resolve(false);
+      };
+      // timeout fallback
+      timer = setTimeout(() => {
+        img.onload = null;
+        img.onerror = null;
+        resolve(false);
+      }, timeout);
+      img.src = src;
+    });
+
+    (async () => {
+      try {
+        const ok = await preloadImage(candidate);
+        if (!cancelled) setImgSrc(ok ? candidate : DEFAULT_SVG);
+      } catch (e) {
+        if (!cancelled) setImgSrc(DEFAULT_SVG);
+      }
+    })();
 
     // Função para buscar o status de favorito da API
     const fetchFavoriteStatus = async () => {
@@ -235,7 +269,7 @@ const Trilhacard = ({ id, title, image, difficulty, time, distance, description,
       }
     };
 
-    // fetchFavoriteStatus(); // LINHA TEMPORARIAMENTE DESATIVADA
+  // fetchFavoriteStatus(); // LINHA TEMPORARIAMENTE DESATIVADA
     setFavorited(false); // Garante que o ícone esteja desfavoritado e não cause erros.
 
     // Sincroniza o usuário (já existia)
@@ -248,6 +282,7 @@ const Trilhacard = ({ id, title, image, difficulty, time, distance, description,
     return () => {
       window.removeEventListener('storage', syncUser);
       window.removeEventListener('userChanged', syncUser);
+      cancelled = true;
     };
   }, [id, user]); // Adicionado user como dependência para re-fetch quando o usuário mudar
 
