@@ -416,6 +416,32 @@ const MapDiagnostics = ({ onReadyLog }) => {
       try {
         const container = map.getContainer();
         const tiles = container ? container.querySelectorAll('img.leaflet-tile') : [];
+        // Fallback para ícones de marcador quebrados: se algum <img.leaflet-marker-icon>
+        // estiver com naturalWidth === 0 (erro de carregamento), substituímos a src
+        // pela imagem padrão do Leaflet (markerIcon) para garantir visibilidade.
+        try {
+          const markerImgs = container ? container.querySelectorAll('img.leaflet-marker-icon') : [];
+          Array.from(markerImgs).forEach((img) => {
+            if (!img) return;
+            // attach a one-time handler to recover from broken images
+            if (!img.dataset._fw) {
+              img.dataset._fw = '1';
+              img.addEventListener('error', () => {
+                try {
+                  img.src = markerIcon;
+                  img.style.opacity = 1;
+                } catch (e) { /* ignore */ }
+              });
+              // if already broken, trigger fallback
+              if (img.complete && img.naturalWidth === 0) {
+                const ev = new Event('error');
+                img.dispatchEvent(ev);
+              }
+            }
+          });
+        } catch (e) {
+          // non-critical
+        }
         const tileInfos = Array.from(tiles).slice(0, 12).map(t => ({ src: t.src, rect: t.getBoundingClientRect(), display: getComputedStyle(t).display, opacity: getComputedStyle(t).opacity }));
         console.info('Mapa: tile count=', tiles.length, 'sample tiles=', tileInfos);
       } catch (e) {
