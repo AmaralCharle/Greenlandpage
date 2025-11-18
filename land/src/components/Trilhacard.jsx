@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { API_BASE_URL } from '../config';
+import { API_BASE_URL, IMAGE_PROXY } from '../config';
 
 // Removida importação de funções locais de favoritos
 
@@ -190,7 +190,18 @@ const Trilhacard = ({ id, title, image, difficulty, time, distance, description,
     if (/^https?:\/\//i.test(r)) return encodeURI(r);
     const apiOrigin = String(API_BASE_URL).replace(/\/api\/?$/i, '');
     const path = r.startsWith('/') ? r : '/' + r;
-    return encodeURI(apiOrigin + path);
+    const absolute = encodeURI(apiOrigin + path);
+    // If an image proxy is configured, route images through it (useful for Netlify/Vercel)
+    if (IMAGE_PROXY) {
+      try {
+        const encoded = encodeURIComponent(absolute);
+        // If IMAGE_PROXY already contains ?url= assume it's the prefix; otherwise append
+        return IMAGE_PROXY.includes('?') ? `${IMAGE_PROXY}${encoded}` : `${IMAGE_PROXY}?url=${encoded}`;
+      } catch (e) {
+        return absolute;
+      }
+    }
+    return absolute;
   };
 
   const DEFAULT_SVG = `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450"><rect width="100%" height="100%" fill="#efefef"/><text x="50%" y="50%" dy="0.35em" text-anchor="middle" fill="#999" font-family="Arial" font-size="22">Sem imagem</text></svg>`)}`;
