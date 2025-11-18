@@ -680,9 +680,14 @@ header .container {
     display: block !important;
 }
 .leaflet-tile-pane {
+    /* tiles should sit below overlays, but above the map background */
     z-index: 1 !important;
 }
-.leaflet-overlay-pane,
+.leaflet-overlay-pane {
+    /* overlays (polylines, polygons) must render above tiles */
+    z-index: 400 !important;
+}
 .leaflet-shadow-pane {
-    z-index: 0 !important;
+    /* shadows under markers should stay below overlays but above background */
+    z-index: 350 !important;
 }
