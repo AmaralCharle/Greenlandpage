@@ -245,15 +245,25 @@ const TrilhasCarousel3D = ({ trilhas = [], autoplay = true, autoplayDelay = 4200
     let mounted = true;
     const fetchTracksOnce = async () => {
       try {
+        // debug logs para verificar se o frontend está fazendo a requisição
+        // será visível no console do navegador quando rodar em dev
+        try { console.debug('TrilhasCarousel3D: fetch starting', `${API_BASE_URL}tracks/`); } catch(e){}
         const res = await fetch(`${API_BASE_URL}tracks/`, { method: 'GET' });
+        try { console.debug('TrilhasCarousel3D: fetch response status', res.status); } catch(e){}
         if (!res.ok) {
           if (mounted) setLocalTrilhas(LOCAL_FALLBACK.slice(0, 10));
           return;
         }
         const data = await res.json();
-        if (!mounted || !Array.isArray(data)) return;
-        const apiOrigin = API_BASE_URL.replace(/\/api\/?$/i, '');
-        const mapped = data.slice(0, 10).map(item => {
+        try { console.debug('TrilhasCarousel3D: fetched items', Array.isArray(data) ? data.length : typeof data); } catch(e){}
+        // Support paginated responses (DRF): { count, next, previous, results: [...] }
+        const itemsArray = Array.isArray(data) ? data : (data && Array.isArray(data.results) ? data.results : null);
+        if (!mounted || !itemsArray) {
+          if (mounted) setLocalTrilhas(LOCAL_FALLBACK.slice(0, 10));
+          return;
+        }
+        const apiOrigin = String(API_BASE_URL).replace(/\/api\/?$/i, '');
+        const mapped = itemsArray.slice(0, 10).map(item => {
           const rawImage = String(item.image || item.photo || item.thumbnail || '').trim();
           const sanitizePath = (p) => String(p || '').replace(/\\/g, '/').trim();
           let image = '';

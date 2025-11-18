@@ -43,9 +43,10 @@ const Home = () => {
         </div>
       )}
       <main className="container">
-        {/* Mostrar somente o carrossel conforme solicitado — removi mapa/tempo para evitar buscas/GPX desnecessários */}
-        <TrilhasCarousel3D trilhas={trilhas} />
-        <Mapa apiTrilhas={trilhas} disableProbes={true} />
+    {/* Mostrar o carrossel puxando diretamente da API (não passamos `trilhas` para forçar a requisição)
+      Mantemos `trilhas` apenas para o mapa se necessário. */}
+    <TrilhasCarousel3D />
+    <Mapa apiTrilhas={trilhas} disableProbes={true} />
         <Weather />
       </main>
       <Footer />
