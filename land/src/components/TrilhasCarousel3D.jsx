@@ -263,7 +263,7 @@ const TrilhasCarousel3D = ({ trilhas = [], autoplay = true, autoplayDelay = 4200
           return;
         }
         const apiOrigin = String(API_BASE_URL).replace(/\/api\/?$/i, '');
-        const mapped = itemsArray.slice(0, 10).map(item => {
+  const mapped = itemsArray.slice(0, 10).map(item => {
           const rawImage = String(item.image || item.photo || item.thumbnail || '').trim();
           const sanitizePath = (p) => String(p || '').replace(/\\/g, '/').trim();
           let image = '';
@@ -289,7 +289,33 @@ const TrilhasCarousel3D = ({ trilhas = [], autoplay = true, autoplayDelay = 4200
             url: item.url || item.gpx || item.file || ''
           };
         });
-        if (mounted) setLocalTrilhas(mapped);
+        if (!mounted) return;
+
+        // Pré-carrega imagens do conjunto mapeado e limpa a propriedade image
+        // quando o recurso não estiver acessível no host (evita mostrar imagem quebrada)
+        const preloadImage = (src, timeout = 8000) => new Promise((resolve) => {
+          if (!src) return resolve(false);
+          if (src.startsWith('data:')) return resolve(true);
+          try {
+            const img = new Image();
+            let timer = null;
+            img.onload = () => { if (timer) clearTimeout(timer); resolve(true); };
+            img.onerror = () => { if (timer) clearTimeout(timer); resolve(false); };
+            timer = setTimeout(() => { img.onload = null; img.onerror = null; resolve(false); }, timeout);
+            img.src = src;
+          } catch (e) { resolve(false); }
+        });
+
+        try {
+          const checked = await Promise.all(mapped.map(async (it) => {
+            if (!it.image) return { ...it, image: '' };
+            const ok = await preloadImage(it.image, 6000);
+            return ok ? it : { ...it, image: '' };
+          }));
+          if (mounted) setLocalTrilhas(checked);
+        } catch (e) {
+          if (mounted) setLocalTrilhas(LOCAL_FALLBACK.slice(0, 10));
+        }
       } catch (e) {
         // Pode falhar por CORS (browser) — usamos fallback local com imagens conhecidas
         if (mounted) setLocalTrilhas(LOCAL_FALLBACK.slice(0, 10));
