@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
 import Header from '../components/Header';
 import TrilhasCarousel3D from '../components/TrilhasCarousel3D';
-import MapaExemplo from '../components/MapaExemplo';
+import Mapa from '../components/Mapa';
 import Weather from '../components/Weather';
 import Modal from '../components/login';
 import Footer from '../components/Footer';
@@ -46,7 +46,7 @@ const Home = () => {
     {/* Mostrar o carrossel puxando diretamente da API (não passamos `trilhas` para forçar a requisição)
       Mantemos `trilhas` apenas para o mapa se necessário. */}
   <TrilhasCarousel3D />
-  <MapaExemplo />
+  <Mapa />
         <Weather />
       </main>
       <Footer />
