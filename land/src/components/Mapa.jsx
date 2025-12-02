@@ -700,6 +700,8 @@ const Mapa = ({ apiTrilhas = [], disableProbes = false }) => {
 
     lastGpxFileRef.current = gpxFile;
 
+    console.debug && console.debug('Mapa effect: loading GPX', { gpxFile, carouselIndex, selectedMarkersBase });
+
     getStartEndFromGPX(gpxFile, (start, end) => setStartEnd({start, end}));
     getTrackPointsFromGPX(gpxFile, (points) => {
       // reduzir verbosidade: apenas debug quando houver mudança real
@@ -727,7 +729,7 @@ const Mapa = ({ apiTrilhas = [], disableProbes = false }) => {
         console.warn('Erro tratanto resultado GPX', e);
       }
     });
-  }, [carouselIndex, selectedMarkersBase, ready, trilhaSelecionada]);
+  }, [carouselIndex, selectedMarkersBase, ready]);
 
   useEffect(() => {
     // Atualiza favoritos ao trocar trilha
