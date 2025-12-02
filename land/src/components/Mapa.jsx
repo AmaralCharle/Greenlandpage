@@ -716,8 +716,12 @@ const Mapa = ({ apiTrilhas = [], disableProbes = false }) => {
           });
           setGpxFallbackFile(null);
         } else {
-          console.info('GPX parser returned 0 points, ativando fallback leaflet-gpx para', gpxFile);
-          setGpxFallbackFile(gpxFile);
+          // GPX não retornou pontos úteis via parser.
+          // NÃO ativamos o fallback `leaflet-gpx` para evitar conflitos conhecidos
+          // que causavam o mapa ficar branco ou o GPX desaparecer.
+          console.info('GPX parser returned 0 points, not using leaflet-gpx fallback for', gpxFile);
+          setGpxFallbackFile(null);
+          setTrackPoints([]);
         }
       } catch (e) {
         console.warn('Erro tratanto resultado GPX', e);
@@ -894,10 +898,12 @@ const Mapa = ({ apiTrilhas = [], disableProbes = false }) => {
             {trackPoints.length > 1 && (
               <Polyline positions={trackPoints} pathOptions={{ color: '#1976d2', weight: 4, opacity: 0.8 }} />
             )}
-            {/* Fallback: se não temos pontos via parser, renderiza com leaflet-gpx */}
-            {gpxFallbackFile && (
-              <GPXTrack gpxFile={gpxFallbackFile} color="#1976d2" onLoaded={(e) => { console.info('GPXTrack loaded via fallback', gpxFallbackFile); }} />
-            )}
+            {/* Fallback desabilitado: o uso do plugin `leaflet-gpx` causava conflitos
+                de renderização (mapa branco / GPX sumindo). Mantemos o fallback
+                no código apenas para referência, mas NUNCA o ativamos em runtime.
+                A renderização agora depende exclusivamente do parser customizado
+                (`getTrackPointsFromGPX`) que popula `trackPoints`.
+            */}
             {/* Linha entre início e fim (opcional, pode remover se quiser só o GPX) */}
             {startEnd.start && startEnd.end && (
               <Polyline
