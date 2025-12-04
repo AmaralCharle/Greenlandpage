@@ -222,18 +222,22 @@ const TrilhasCarousel3D = ({ trilhas = [], autoplay = true, autoplayDelay = 4200
 
   // ajusta automaticamente o índice se trilhas mudar
   // Fallback local usado quando a API estiver inacessível (CORS, offline, etc.)
-  const LOCAL_FALLBACK = [
-    { id: 'f1', title: 'Trilha da Pedra do Elefante', image: 'https://painful.aksaraymalaklisi.net/media/tracks/images/Foto_2.webp', description: 'Vista panorâmica e formação rochosa única.', difficulty: 'moderado', time: '1h40' },
-    { id: 'f2', title: 'Trilha da Pedra do Itaocaia', image: 'https://painful.aksaraymalaklisi.net/media/tracks/images/pedra-de-itaocaia.jpg', description: 'Trilha íngreme com visual incrível do topo.', difficulty: 'difícil', time: '1h30' },
-    { id: 'f3', title: 'Trilha da Pedra do Silvado', image: 'https://painful.aksaraymalaklisi.net/media/tracks/images/Foto_2.jpg', description: 'Desafio para os aventureiros.', difficulty: 'difícil', time: '5h' },
-    { id: 'f4', title: 'Trilha da Pedra de Inoã', image: 'https://painful.aksaraymalaklisi.net/media/tracks/images/Foto_01.jpg', description: 'Trilha curta com subidas fortes.', difficulty: 'moderado', time: '1h30' },
-    { id: 'f5', title: 'Trilha da Pedra de Macaco', image: 'https://painful.aksaraymalaklisi.net/media/tracks/images/Pedra-do-Macaco-2-700x467.jpg', description: 'Ideal para iniciantes e famílias.', difficulty: 'fácil', time: '40m' },
-    { id: 'f6', title: 'Trilha Caminhos de Darwin', image: 'https://painful.aksaraymalaklisi.net/media/tracks/images/Imagem_III.jpg', description: '', difficulty: 'fácil', time: '2h' },
-    { id: 'f7', title: 'Pico da Lagoinha', image: 'https://painful.aksaraymalaklisi.net/media/tracks/images/Foto_4_Trilha_do_Pico_da_Lagoinha.jpg', description: 'Acesso ao ponto mais alto da região.', difficulty: 'difícil', time: '5h' },
-    { id: 'f8', title: 'Travessia Silvado - Espraiado', image: 'https://painful.aksaraymalaklisi.net/media/tracks/images/Foto_1_Trilha_de_Travessia_Silvado_-_Espraiado.jpg', description: 'Travessia entre vales e montanhas.', difficulty: 'difícil', time: '2h30' },
-    { id: 'f9', title: 'Cachoeira do Segredo', image: 'https://painful.aksaraymalaklisi.net/media/tracks/images/Foto_3_Trilha_da_Cachoeira_do_Segredo_em_Silvado.jpg', description: 'Cachoeira escondida em meio à mata.', difficulty: 'moderado', time: '2h' },
-    { id: 'f10', title: 'Imagem genérica', image: '', description: 'Imagem não disponível', difficulty: '', time: '' },
+  // Dados ricos manuais para garantir que os cards nunca fiquem vazios
+  const RICH_TRAILS_DATA = [
+    { id: 'f1', title: 'Trilha da Pedra do Elefante', image: 'https://painful.aksaraymalaklisi.net/media/tracks/images/Foto_2.webp', description: 'Vista panorâmica e formação rochosa única.', difficulty: 'Moderado', time: '1h40', details: ['Vista de 360 graus', 'Formação rochosa icônica', 'Vegetação de mata atlântica'], highlights: 'Pôr do sol incrível' },
+    { id: 'f2', title: 'Trilha da Pedra do Itaocaia', image: 'https://painful.aksaraymalaklisi.net/media/tracks/images/pedra-de-itaocaia.jpg', description: 'Trilha íngreme com visual incrível do topo.', difficulty: 'Difícil', time: '1h30', details: ['Subida íngreme', 'Vista para o mar', 'História local (Darwin)'], highlights: 'Vista da Lagoa de Maricá' },
+    { id: 'f3', title: 'Trilha da Pedra do Silvado', image: 'https://painful.aksaraymalaklisi.net/media/tracks/images/Foto_2.jpg', description: 'Desafio para os aventureiros, com mata fechada.', difficulty: 'Difícil', time: '5h', details: ['Mata densa', 'Fauna rica', 'Silêncio e isolamento'], highlights: 'Contato profundo com a natureza' },
+    { id: 'f4', title: 'Trilha da Pedra de Inoã', image: 'https://painful.aksaraymalaklisi.net/media/tracks/images/Foto_01.jpg', description: 'Trilha curta, mas com subidas fortes.', difficulty: 'Moderado', time: '1h30', details: ['Subida constante', 'Vista da orla', 'Vegetação rasteira'], highlights: 'Vista panorâmica de Inoã' },
+    { id: 'f5', title: 'Trilha da Pedra de Macaco', image: 'https://painful.aksaraymalaklisi.net/media/tracks/images/Pedra-do-Macaco-2-700x467.jpg', description: 'Ideal para iniciantes e famílias.', difficulty: 'Fácil', time: '40m', details: ['Acesso fácil', 'Sombreada', 'Vista do litoral'], highlights: 'Pedra suspensa para fotos' },
+    { id: 'f6', title: 'Trilha Caminhos de Darwin', image: 'https://painful.aksaraymalaklisi.net/media/tracks/images/Imagem_III.jpg', description: 'Trilha histórica, vegetação variada.', difficulty: 'Fácil', time: '2h', details: ['Caminho histórico', 'Passagem de Charles Darwin', 'Biodiversidade'], highlights: 'Placas informativas históricas' },
+    { id: 'f7', title: 'Pico da Lagoinha', image: 'https://painful.aksaraymalaklisi.net/media/tracks/images/Foto_4_Trilha_do_Pico_da_Lagoinha.jpg', description: 'Acesso ao ponto mais alto da região.', difficulty: 'Difícil', time: '5h', details: ['Ponto culminante', 'Vista de toda a região', 'Clima de montanha'], highlights: 'O ponto mais alto de Maricá' },
+    { id: 'f8', title: 'Travessia Silvado - Espraiado', image: 'https://painful.aksaraymalaklisi.net/media/tracks/images/Foto_1_Trilha_de_Travessia_Silvado_-_Espraiado.jpg', description: 'Travessia entre vales e montanhas.', difficulty: 'Difícil', time: '2h30', details: ['Travessia de vale', 'Rios e cachoeiras', 'Paisagem rural'], highlights: 'Conexão entre dois bairros rurais' },
+    { id: 'f9', title: 'Cachoeira do Segredo', image: 'https://painful.aksaraymalaklisi.net/media/tracks/images/Foto_3_Trilha_da_Cachoeira_do_Segredo_em_Silvado.jpg', description: 'Cachoeira escondida em meio à mata.', difficulty: 'Moderado', time: '2h', details: ['Banho de cachoeira', 'Água cristalina', 'Trilha úmida'], highlights: 'Queda d\'água refrescante' },
+    { id: 'f10', title: 'Trilha dos Espraiado/Tomascar', image: 'https://painful.aksaraymalaklisi.net/media/tracks/images/IMG-20251204-WA0015.jpg', description: 'Travessia longa e desafiadora, paisagens rurais.', difficulty: 'Difícil', time: '2h', details: ['Fazenda histórica', 'Rio Tomascar', 'Comida típica no final'], highlights: 'Almoço no Tomascar' },
   ];
+
+  // Fallback local usado quando a API estiver inacessível (CORS, offline, etc.)
+  const LOCAL_FALLBACK = RICH_TRAILS_DATA;
 
   useEffect(() => {
     // Se a quantidade de trilhas mudou e o centerIndex não é válido, normalizamos
@@ -325,14 +329,34 @@ const TrilhasCarousel3D = ({ trilhas = [], autoplay = true, autoplayDelay = 4200
             url: item.url || item.gpx || item.file || ''
           };
         });
+
+        // Enriquecimento: Se a API não retornou descrição ou detalhes, tentamos preencher
+        // com os dados manuais (RICH_TRAILS_DATA) baseando-se no título.
+        const enriched = mapped.map(apiItem => {
+          const localMatch = RICH_TRAILS_DATA.find(local => 
+            local.title.toLowerCase().includes(apiItem.title.toLowerCase()) || 
+            apiItem.title.toLowerCase().includes(local.title.toLowerCase())
+          );
+          if (localMatch) {
+            return {
+              ...apiItem,
+              description: apiItem.description || localMatch.description,
+              details: (apiItem.details && apiItem.details.length > 0) ? apiItem.details : localMatch.details,
+              highlights: apiItem.highlights || localMatch.highlights,
+              difficulty: apiItem.difficulty || localMatch.difficulty,
+              time: apiItem.time || localMatch.time
+            };
+          }
+          return apiItem;
+        });
         if (!mounted) return;
 
         if (!mounted) return;
 
         // Removemos o preload estrito que bloqueava a renderização.
         // Deixamos o navegador carregar as imagens progressivamente.
-        console.log('TrilhasCarousel3D: setting tracks', mapped.map(t => ({ id: t.id, image: t.image })));
-        if (mounted) setLocalTrilhas(mapped);
+        // console.log('TrilhasCarousel3D: setting tracks', enriched.map(t => ({ id: t.id, image: t.image })));
+        if (mounted) setLocalTrilhas(enriched);
 
       } catch (e) {
         console.error('TrilhasCarousel3D: error processing tracks', e);
