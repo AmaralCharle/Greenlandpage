@@ -156,9 +156,19 @@ const TrilhaCard = ({ trilha, onToggleOpen }) => {
 
   const title = sanitizeText(trilha.title || trilha.label || 'Trilha');
   const imageUrl = trilha.image || trilha.photo || trilha.imageUrl || '';
+
   return (
     <div className="trilha-card" aria-label={title}>
-      <div className="trilha-imagem" style={{ backgroundImage: imageUrl ? `url('${imageUrl}')` : 'none', backgroundColor: imageUrl ? undefined : '#efefef' }}>
+      <div className="trilha-imagem" style={{ position: 'relative', overflow: 'hidden', backgroundColor: '#efefef' }}>
+        {imageUrl && (
+          <img 
+            src={imageUrl} 
+            alt={title} 
+            referrerPolicy="no-referrer"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0, borderTopLeftRadius: '12px', borderTopRightRadius: '12px' }}
+            onError={(e) => { e.target.style.display = 'none'; }}
+          />
+        )}
         <div className="trilha-titulo">{title}</div>
       </div>
       <div className="trilha-conteudo">
@@ -317,32 +327,15 @@ const TrilhasCarousel3D = ({ trilhas = [], autoplay = true, autoplayDelay = 4200
         });
         if (!mounted) return;
 
-        // Pré-carrega imagens do conjunto mapeado e limpa a propriedade image
-        // quando o recurso não estiver acessível no host (evita mostrar imagem quebrada)
-        const preloadImage = (src, timeout = 8000) => new Promise((resolve) => {
-          if (!src) return resolve(false);
-          if (src.startsWith('data:')) return resolve(true);
-          try {
-            const img = new Image();
-            let timer = null;
-            img.onload = () => { if (timer) clearTimeout(timer); resolve(true); };
-            img.onerror = () => { if (timer) clearTimeout(timer); resolve(false); };
-            timer = setTimeout(() => { img.onload = null; img.onerror = null; resolve(false); }, timeout);
-            img.src = src;
-          } catch (e) { resolve(false); }
-        });
+        if (!mounted) return;
 
-        try {
-          const checked = await Promise.all(mapped.map(async (it) => {
-            if (!it.image) return { ...it, image: '' };
-            const ok = await preloadImage(it.image, 6000);
-            return ok ? it : { ...it, image: '' };
-          }));
-          if (mounted) setLocalTrilhas(checked);
-        } catch (e) {
-          if (mounted) setLocalTrilhas(LOCAL_FALLBACK.slice(0, 10));
-        }
+        // Removemos o preload estrito que bloqueava a renderização.
+        // Deixamos o navegador carregar as imagens progressivamente.
+        console.log('TrilhasCarousel3D: setting tracks', mapped.map(t => ({ id: t.id, image: t.image })));
+        if (mounted) setLocalTrilhas(mapped);
+
       } catch (e) {
+        console.error('TrilhasCarousel3D: error processing tracks', e);
         // Pode falhar por CORS (browser) — usamos fallback local com imagens conhecidas
         if (mounted) setLocalTrilhas(LOCAL_FALLBACK.slice(0, 10));
       }
