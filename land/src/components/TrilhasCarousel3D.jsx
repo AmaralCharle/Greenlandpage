@@ -192,11 +192,11 @@ const TrilhaCard = ({ trilha, onToggleOpen }) => {
             ) : (
               <p>Informações adicionais não disponíveis.</p>
             )}
-            {trilha.highlights ? (
-              <>
-                <h4>Destaques</h4>
-                <p>{sanitizeText(trilha.highlights)}</p>
-              </>
+            {sanitizeText(trilha.highlights) ? (
+              <div style={{ marginTop: '12px' }}>
+                <strong style={{ color: 'var(--verde-escuro)' }}>Destaques:</strong>
+                <p style={{ marginTop: '4px' }}>{sanitizeText(trilha.highlights)}</p>
+              </div>
             ) : null}
           </div>
         </div>
