@@ -2,9 +2,6 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { API_BASE_URL } from '../config';
 import styled from 'styled-components';
 
-// Componente convertido do CSS fornecido no txt.txt
-// Mantive o padrão visual e fiz a lógica do carrossel 3D em React
-
 const Wrapper = styled.section`
   --verde-escuro: #08420b;
   --verde-medio: #0daf16;
@@ -133,7 +130,6 @@ const Wrapper = styled.section`
   }
 `;
 
-// Remove stray lines containing only a single "s" and trim whitespace.
 const sanitizeText = (txt) => {
   if (!txt || typeof txt !== 'string') return txt;
   const lines = txt.split('\n').filter(line => !/^\s*s\s*$/i.test(line));
@@ -148,8 +144,6 @@ const TrilhaCard = ({ trilha, onToggleOpen }) => {
     setShowDetails((s) => !s);
   };
 
-  // Notifica o pai quando o estado de detalhes mudar, evitando chamadas de setState
-  // durante a fase de renderização (evita o warning sobre setState em render).
   React.useEffect(() => {
     if (onToggleOpen) onToggleOpen(trilha.id, showDetails);
   }, [showDetails]);
@@ -206,13 +200,10 @@ const TrilhaCard = ({ trilha, onToggleOpen }) => {
 };
 
 const TrilhasCarousel3D = ({ trilhas = [], autoplay = true, autoplayDelay = 4200 }) => {
-  // rotationCounter é cumulativo e evita 'pulos' na animação quando chegamos ao final.
-  // centerIndex é o índice atual do item central (usado para escolher o card ativo).
   const [rotationCounter, setRotationCounter] = useState(0);
   const [localTrilhas, setLocalTrilhas] = useState(trilhas || []);
   const count = localTrilhas.length === 0 ? 1 : localTrilhas.length;
   const centerIndex = ((rotationCounter % count) + count) % count;
-  // Tornar autoplay mais lento — multiplicador para o delay automático
   const effectiveAutoplayDelay = autoplayDelay * 3;
   const rootRef = useRef(null);
   const dragging = useRef(false);
@@ -220,9 +211,6 @@ const TrilhasCarousel3D = ({ trilhas = [], autoplay = true, autoplayDelay = 4200
   const autoRef = useRef(null);
   const [openCardId, setOpenCardId] = useState(null);
 
-  // ajusta automaticamente o índice se trilhas mudar
-  // Fallback local usado quando a API estiver inacessível (CORS, offline, etc.)
-  // Dados ricos manuais para garantir que os cards nunca fiquem vazios
   const RICH_TRAILS_DATA = [
     { id: 'f1', title: 'Trilha da Pedra do Elefante', image: 'https://painful.aksaraymalaklisi.net/media/tracks/images/Foto_2.webp', description: 'Vista panorâmica e formação rochosa única.', difficulty: 'Moderado', time: '1h40', details: ['Vista de 360 graus', 'Formação rochosa icônica', 'Vegetação de mata atlântica'], highlights: 'Pôr do sol incrível' },
     { id: 'f2', title: 'Trilha da Pedra do Itaocaia', image: 'https://painful.aksaraymalaklisi.net/media/tracks/images/pedra-de-itaocaia.jpg', description: 'Trilha íngreme com visual incrível do topo.', difficulty: 'Difícil', time: '1h30', details: ['Subida íngreme', 'Vista para o mar', 'História local (Darwin)'], highlights: 'Vista da Lagoa de Maricá' },
@@ -240,17 +228,13 @@ const TrilhasCarousel3D = ({ trilhas = [], autoplay = true, autoplayDelay = 4200
   const LOCAL_FALLBACK = RICH_TRAILS_DATA;
 
   useEffect(() => {
-    // Se a quantidade de trilhas mudou e o centerIndex não é válido, normalizamos
-    // o rotationCounter para manter o mesmo centro quando possível.
+  useEffect(() => {
     if (count === 0) return;
     if (centerIndex >= count) {
       setRotationCounter((rc) => rc % count);
     }
   }, [count]);
 
-  // Se o pai passou trilhas por props, usamos essas imediatamente.
-  // Caso contrário, fazemos UMA única requisição ao endpoint `/tracks/`
-  // no mount e preenchemos os 10 primeiros itens.
   useEffect(() => {
     if (trilhas && trilhas.length > 0) {
       setLocalTrilhas(trilhas.slice(0, 10));
@@ -259,10 +243,7 @@ const TrilhasCarousel3D = ({ trilhas = [], autoplay = true, autoplayDelay = 4200
     let mounted = true;
     const fetchTracksOnce = async () => {
       try {
-        // debug logs para verificar se o frontend está fazendo a requisição
-        // será visível no console do navegador quando rodar em dev
         try { console.debug('TrilhasCarousel3D: fetch starting', `${API_BASE_URL}tracks/`); } catch(e){}
-        // Usa AbortController para timeout e melhor controle de erros
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
         
@@ -330,8 +311,6 @@ const TrilhasCarousel3D = ({ trilhas = [], autoplay = true, autoplayDelay = 4200
           };
         });
 
-        // Enriquecimento: Se a API não retornou descrição ou detalhes, tentamos preencher
-        // com os dados manuais (RICH_TRAILS_DATA) baseando-se no título.
         const enriched = mapped.map(apiItem => {
           const localMatch = RICH_TRAILS_DATA.find(local => 
             local.title.toLowerCase().includes(apiItem.title.toLowerCase()) || 
@@ -353,9 +332,6 @@ const TrilhasCarousel3D = ({ trilhas = [], autoplay = true, autoplayDelay = 4200
 
         if (!mounted) return;
 
-        // Removemos o preload estrito que bloqueava a renderização.
-        // Deixamos o navegador carregar as imagens progressivamente.
-        // console.log('TrilhasCarousel3D: setting tracks', enriched.map(t => ({ id: t.id, image: t.image })));
         if (mounted) setLocalTrilhas(enriched);
 
       } catch (e) {

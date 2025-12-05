@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { API_BASE_URL, IMAGE_PROXY } from '../config';
 
 const Trilhacard = ({ id, title, image, difficulty, time, distance, description, details, highlights }) => {
-  // Sanitiza textos: remove linhas com apenas 's' (ou espaços + 's') e linhas vazias.
-  // Também remove caracteres invisíveis (zero-width, BOM, NBSP) antes da checagem.
   const normalizeInvisible = (s) => String(s).replace(/[\u200B\uFEFF\u00A0]/g, '').replace(/\u00AD/g, '');
 
   const sanitizeText = (raw) => {
@@ -33,7 +31,6 @@ const Trilhacard = ({ id, title, image, difficulty, time, distance, description,
   const sanitizedHighlights = sanitizeText(highlights);
   const sanitizedDetails = sanitizeDetails(details);
 
-  // Construção robusta da URL da imagem: aceita absolute, absolute with spaces, or relative paths
   const sanitizePath = (p) => String(p || '').replace(/\\/g, '/').trim();
   const buildAbsolute = (raw) => {
     if (!raw) return '';
@@ -42,7 +39,6 @@ const Trilhacard = ({ id, title, image, difficulty, time, distance, description,
     const apiOrigin = String(API_BASE_URL).replace(/\/api\/?$/i, '');
     const path = r.startsWith('/') ? r : '/' + r;
     const absolute = encodeURI(apiOrigin + path);
-    // If an image proxy is configured, route images through it (useful for Netlify/Vercel)
     if (IMAGE_PROXY) {
       try {
         const encoded = encodeURIComponent(absolute);
@@ -59,14 +55,12 @@ const Trilhacard = ({ id, title, image, difficulty, time, distance, description,
 
   const [showDetails, setShowDetails] = useState(false);
   const [favorited, setFavorited] = useState(false);
-  // imgSrc guarda a URL efetiva usada no background; quando der erro, trocamos para DEFAULT_SVG
   const [imgSrc, setImgSrc] = useState(() => buildAbsolute(image) || DEFAULT_SVG);
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('user');
     return saved ? JSON.parse(saved) : null;
   });
 
-  // Função para determinar a cor de dificuldade
   const getDifficultyColor = (level) => {
     switch(level) {
       case 'Fácil':
@@ -82,8 +76,6 @@ const Trilhacard = ({ id, title, image, difficulty, time, distance, description,
   };
 
   useEffect(() => {
-    // atualiza imgSrc quando a prop image mudar
-    // Pré-carrega a imagem para evitar que o site publicado mostre imagens quebradas
     const candidate = buildAbsolute(image) || DEFAULT_SVG;
     let cancelled = false;
 
@@ -119,7 +111,6 @@ const Trilhacard = ({ id, title, image, difficulty, time, distance, description,
       }
     })();
 
-    // Função para buscar o status de favorito da API
     const fetchFavoriteStatus = async () => {
       if (!user) {
         setFavorited(false);
@@ -127,7 +118,6 @@ const Trilhacard = ({ id, title, image, difficulty, time, distance, description,
       }
       const token = localStorage.getItem('access_token');
       try {
-        // Buscando informações da trilha, que agora inclui is_favorited
         const response = await fetch(`${API_BASE_URL}tracks/${id}/`, {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -147,7 +137,7 @@ const Trilhacard = ({ id, title, image, difficulty, time, distance, description,
     };
 
   // fetchFavoriteStatus(); // LINHA TEMPORARIAMENTE DESATIVADA
-    setFavorited(false); // Garante que o ícone esteja desfavoritado e não cause erros.
+    setFavorited(false);
 
     // Sincroniza o usuário (já existia)
     const syncUser = () => {
@@ -161,7 +151,7 @@ const Trilhacard = ({ id, title, image, difficulty, time, distance, description,
       window.removeEventListener('userChanged', syncUser);
       cancelled = true;
     };
-  }, [id, user]); // Adicionado user como dependência para re-fetch quando o usuário mudar
+  }, [id, user]);
 
   const handleToggle = () => setShowDetails((prev) => !prev);
 
