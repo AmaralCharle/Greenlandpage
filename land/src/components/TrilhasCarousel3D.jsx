@@ -228,7 +228,7 @@ const TrilhasCarousel3D = ({ trilhas = [], autoplay = true, autoplayDelay = 4200
   const LOCAL_FALLBACK = RICH_TRAILS_DATA;
 
   useEffect(() => {
-  useEffect(() => {
+
     if (count === 0) return;
     if (centerIndex >= count) {
       setRotationCounter((rc) => rc % count);
