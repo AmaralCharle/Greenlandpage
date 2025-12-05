@@ -191,7 +191,23 @@ const Navbar = ({ openModal }) => {
   });
   const [showMenu, setShowMenu] = React.useState(false);
   const [showAccessibility, setShowAccessibility] = React.useState(false);
+  const [favorites, setFavorites] = React.useState([]);
+  const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
   const fileInputRef = React.useRef();
+
+  useEffect(() => {
+    const loadFavorites = () => {
+      const saved = localStorage.getItem('favorites');
+      setFavorites(saved ? JSON.parse(saved) : []);
+    };
+    loadFavorites();
+    window.addEventListener('storage', loadFavorites);
+    window.addEventListener('favoritesChanged', loadFavorites);
+    return () => {
+      window.removeEventListener('storage', loadFavorites);
+      window.removeEventListener('favoritesChanged', loadFavorites);
+    };
+  }, []);
 
   const handleAvatarClick = () => {
     setShowMenu((v) => !v);
@@ -290,7 +306,105 @@ const Navbar = ({ openModal }) => {
           <li><Link to="/"><i className="fas fa-home"></i> Home</Link></li>
           <li><Link to="/trilhas"><i className="fas fa-map-marked-alt"></i> Trilhas</Link></li>
           <li><Link to="/comunidade"><i className="fas fa-users"></i> Comunidade</Link></li>
-          <li><Link to="/favoritos"><i className="fas fa-heart"></i> Favoritos</Link></li>
+          
+          {/* Menu de Favoritos com Dropdown */}
+          <li 
+            style={{position: 'relative'}}
+            onMouseEnter={() => setShowFavoritesMenu(true)}
+            onMouseLeave={() => setShowFavoritesMenu(false)}
+          >
+            <Link to="/favoritos" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <i className="fas fa-heart text-red-500"></i> Favoritos
+              {favorites.length > 0 && (
+                <span style={{
+                  background: 'var(--verde-claro)', 
+                  color: '#fff', 
+                  borderRadius: '50%', 
+                  padding: '2px 6px', 
+                  fontSize: '0.7rem',
+                  marginLeft: '4px'
+                }}>
+                  {favorites.length}
+                </span>
+              )}
+            </Link>
+            
+            {/* Dropdown */}
+            {showFavoritesMenu && (
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                left: '0',
+                background: '#fff',
+                minWidth: '260px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                borderRadius: '8px',
+                padding: '10px 0',
+                zIndex: 1000,
+                display: 'flex',
+                flexDirection: 'column'
+              }}>
+                {favorites.length > 0 ? (
+                  <>
+                    {favorites.slice(0, 5).map(fav => (
+                      <Link 
+                        key={fav.id} 
+                        to="/favoritos" 
+                        style={{
+                          padding: '10px 15px',
+                          color: '#333',
+                          fontSize: '0.9rem',
+                          borderBottom: '1px solid #eee',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          transition: 'background 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f5'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                      >
+                        <div style={{
+                          width: '32px', 
+                          height: '32px', 
+                          borderRadius: '4px', 
+                          backgroundImage: `url(${fav.image || fav.photo || ''})`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                          backgroundColor: '#eee'
+                        }}></div>
+                        <span style={{whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '180px'}}>
+                          {fav.title || fav.label || 'Trilha sem nome'}
+                        </span>
+                      </Link>
+                    ))}
+                    {favorites.length > 5 && (
+                      <div style={{padding: '8px 15px', fontSize: '0.8rem', color: '#666', textAlign: 'center'}}>
+                        E mais {favorites.length - 5}...
+                      </div>
+                    )}
+                    <Link 
+                      to="/favoritos"
+                      style={{
+                        padding: '10px 15px',
+                        color: 'var(--verde-escuro)',
+                        fontWeight: 'bold',
+                        textAlign: 'center',
+                        display: 'block',
+                        marginTop: '5px'
+                      }}
+                    >
+                      Ver todos os favoritos
+                    </Link>
+                  </>
+                ) : (
+                  <div style={{padding: '15px', textAlign: 'center', color: '#666'}}>
+                    <p style={{fontSize: '0.9rem'}}>Nenhuma trilha favorita ainda.</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </li>
+
           <li><a href="#footer-contato" onClick={e => {
             e.preventDefault();
             const el = document.getElementById('footer-contato');

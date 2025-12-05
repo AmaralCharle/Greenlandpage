@@ -137,7 +137,17 @@ const Trilhacard = ({ id, title, image, difficulty, time, distance, description,
     };
 
   // fetchFavoriteStatus(); // LINHA TEMPORARIAMENTE DESATIVADA
-    setFavorited(false);
+    // Inicializa status com base no localStorage para feedback imediato
+    const checkLocalFavorite = () => {
+      const localFavs = localStorage.getItem('favorites');
+      if (localFavs) {
+        const parsed = JSON.parse(localFavs);
+        if (parsed.some(f => f.id === id)) {
+          setFavorited(true);
+        }
+      }
+    };
+    checkLocalFavorite();
 
     // Sincroniza o usuário (já existia)
     const syncUser = () => {
@@ -175,14 +185,42 @@ const Trilhacard = ({ id, title, image, difficulty, time, distance, description,
       });
 
       if (response.ok) {
-        setFavorited(!favorited);
-        alert(favorited ? 'Trilha removida dos favoritos!' : 'Trilha favoritada com sucesso!');
+        const newStatus = !favorited;
+        setFavorited(newStatus);
+        
+        // Sincroniza com localStorage para a Navbar e página de Favoritos
+        let localFavs = localStorage.getItem('favorites');
+        localFavs = localFavs ? JSON.parse(localFavs) : [];
+        
+        if (newStatus) {
+          // Adicionar
+          if (!localFavs.find(f => f.id === id)) {
+            localFavs.push({ id, title, image, difficulty, time, distance, description, details, highlights });
+          }
+        } else {
+          // Remover
+          localFavs = localFavs.filter(f => f.id !== id);
+        }
+        
+        localStorage.setItem('favorites', JSON.stringify(localFavs));
+        // Dispara evento para atualizar outros componentes (Navbar)
+        window.dispatchEvent(new Event('favoritesChanged'));
+        window.dispatchEvent(new Event('storage'));
+
+        alert(newStatus ? 'Trilha favoritada com sucesso!' : 'Trilha removida dos favoritos!');
       } else if (response.status === 409) {
         alert('Trilha já favoritada!');
         setFavorited(true);
       } else if (response.status === 404 && method === 'DELETE') {
         alert('Trilha não encontrada nos seus favoritos para remover.');
         setFavorited(false);
+        // Garante remoção local também
+        let localFavs = localStorage.getItem('favorites');
+        if (localFavs) {
+          localFavs = JSON.parse(localFavs).filter(f => f.id !== id);
+          localStorage.setItem('favorites', JSON.stringify(localFavs));
+          window.dispatchEvent(new Event('favoritesChanged'));
+        }
       } else {
         console.error('Erro na API de favoritos:', response.statusText);
         alert('Ocorreu um erro ao processar o favorito.');
