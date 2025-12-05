@@ -254,16 +254,14 @@ const Trilhacard = ({ id, title, image, difficulty, time, distance, description,
           {title}
         </h2>
 
-        {/* Botão de Favorito (Coração) */}
-        {user && (
-          <button
-            onClick={handleFavorite}
-            className="absolute top-3 right-3 z-20 p-2 rounded-full bg-white/80 hover:bg-white transition-all duration-300 shadow-md group"
-            title={favorited ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-          >
-            <i className={`${favorited ? 'fas text-red-500' : 'far text-gray-600 group-hover:text-red-500'} fa-heart text-xl`}></i>
-          </button>
-        )}
+        {/* Botão de Favorito (Coração) - Sempre visível */}
+        <button
+          onClick={handleFavorite}
+          className="absolute top-3 right-3 z-20 p-2 rounded-full bg-white/80 hover:bg-white transition-all duration-300 shadow-md group"
+          title={user ? (favorited ? 'Remover dos favoritos' : 'Adicionar aos favoritos') : 'Faça login para favoritar'}
+        >
+          <i className={`${favorited ? 'fas text-red-500' : 'far text-gray-600 group-hover:text-red-500'} fa-heart text-xl`}></i>
+        </button>
       </div>
 
       {/* Conteúdo do Card */}
