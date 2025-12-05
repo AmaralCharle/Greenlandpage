@@ -138,6 +138,11 @@ const sanitizeText = (txt) => {
 
 const TrilhaCard = ({ trilha, onToggleOpen }) => {
   const [showDetails, setShowDetails] = React.useState(false);
+  const [favorited, setFavorited] = useState(false);
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem('user');
+    return saved ? JSON.parse(saved) : null;
+  });
 
   const toggle = (e) => {
     e.stopPropagation();
@@ -147,6 +152,102 @@ const TrilhaCard = ({ trilha, onToggleOpen }) => {
   React.useEffect(() => {
     if (onToggleOpen) onToggleOpen(trilha.id, showDetails);
   }, [showDetails]);
+
+  // Favorite Logic
+  useEffect(() => {
+    const checkLocalFavorite = () => {
+      const localFavs = localStorage.getItem('favorites');
+      if (localFavs) {
+        const parsed = JSON.parse(localFavs);
+        if (parsed.some(f => f.id === trilha.id)) {
+          setFavorited(true);
+        } else {
+          setFavorited(false);
+        }
+      }
+    };
+    checkLocalFavorite();
+
+    const syncUser = () => {
+      const saved = localStorage.getItem('user');
+      setUser(saved ? JSON.parse(saved) : null);
+    };
+    window.addEventListener('storage', syncUser);
+    window.addEventListener('userChanged', syncUser);
+    window.addEventListener('favoritesChanged', checkLocalFavorite);
+    return () => {
+      window.removeEventListener('storage', syncUser);
+      window.removeEventListener('userChanged', syncUser);
+      window.removeEventListener('favoritesChanged', checkLocalFavorite);
+    };
+  }, [trilha.id]);
+
+  const handleFavorite = async (e) => {
+    e.stopPropagation();
+    if (!user) {
+      alert('Você precisa estar logado para favoritar trilhas!');
+      return;
+    }
+
+    const token = localStorage.getItem('access_token');
+    const method = favorited ? 'DELETE' : 'POST';
+
+    try {
+      // Optimistic update for immediate feedback
+      const newStatus = !favorited;
+      setFavorited(newStatus);
+      
+      // Update LocalStorage immediately
+      let localFavs = localStorage.getItem('favorites');
+      localFavs = localFavs ? JSON.parse(localFavs) : [];
+      
+      if (newStatus) {
+        if (!localFavs.find(f => f.id === trilha.id)) {
+          localFavs.push(trilha);
+        }
+      } else {
+        localFavs = localFavs.filter(f => f.id !== trilha.id);
+      }
+      localStorage.setItem('favorites', JSON.stringify(localFavs));
+      window.dispatchEvent(new Event('favoritesChanged'));
+
+      // API Call
+      const response = await fetch(`${API_BASE_URL}tracks/${trilha.id}/favorite/`, {
+        method: method,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 409) {
+           // Already favorited, ensure state is true
+           setFavorited(true);
+        } else if (response.status === 404 && method === 'DELETE') {
+           // Not found to delete, ensure state is false
+           setFavorited(false);
+        } else {
+           // Revert on error
+           setFavorited(!newStatus);
+           // Revert localStorage
+           let currentFavs = localStorage.getItem('favorites');
+           currentFavs = currentFavs ? JSON.parse(currentFavs) : [];
+           if (newStatus) { // We tried to add, so remove
+              currentFavs = currentFavs.filter(f => f.id !== trilha.id);
+           } else { // We tried to remove, so add back
+              if (!currentFavs.find(f => f.id === trilha.id)) currentFavs.push(trilha);
+           }
+           localStorage.setItem('favorites', JSON.stringify(currentFavs));
+           window.dispatchEvent(new Event('favoritesChanged'));
+           alert('Erro ao sincronizar favorito com o servidor.');
+        }
+      }
+    } catch (error) {
+      console.error('Erro de rede ao favoritar:', error);
+      // Revert is complex here, keeping optimistic state but warning user might be safer or just silent fail for now
+    }
+  };
 
   const title = sanitizeText(trilha.title || trilha.label || 'Trilha');
   const imageUrl = trilha.image || trilha.photo || trilha.imageUrl || '';
@@ -164,6 +265,16 @@ const TrilhaCard = ({ trilha, onToggleOpen }) => {
           />
         )}
         <div className="trilha-titulo">{title}</div>
+        
+        {/* Botão de Favorito (Coração) - Sempre visível */}
+        <button
+          onClick={handleFavorite}
+          className="absolute top-3 right-3 z-20 p-2 rounded-full bg-white/80 hover:bg-white transition-all duration-300 shadow-md group"
+          title={user ? (favorited ? 'Remover dos favoritos' : 'Adicionar aos favoritos') : 'Faça login para favoritar'}
+          style={{ border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px' }}
+        >
+          <i className={`${favorited ? 'fas text-red-500' : 'far text-gray-600 group-hover:text-red-500'} fa-heart`} style={{ fontSize: '1.2rem', color: favorited ? '#ef4444' : '#4b5563' }}></i>
+        </button>
       </div>
       <div className="trilha-conteudo">
         <div className="trilha-info">
