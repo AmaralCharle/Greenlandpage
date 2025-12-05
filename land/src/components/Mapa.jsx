@@ -304,34 +304,7 @@ const Tooltip = styled.div`
   transition: opacity 0.2s;
   white-space: nowrap;
 `;
-const FavoriteButton = styled.button`
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: rgba(255, 255, 255, 0.9);
-  border: none;
-  border-radius: 50%;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s;
-  z-index: 2;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-  &:hover {
-    transform: scale(1.1);
-  }
-  i {
-    color: ${props => props.$isFavorite ? '#FFD600' : '#bbb'};
-    font-size: 1.1rem;
-  }
-  &:hover > .tooltip {
-    visibility: visible;
-    opacity: 1;
-  }
-`;
+
 
 const MapEvents = ({ onZoom }) => {
   useMapEvents({
@@ -402,7 +375,7 @@ const Mapa = ({ apiTrilhas, disableProbes = false }) => {
   const [trackPoints, setTrackPoints] = useState([]);
   const [gpxFallbackFile, setGpxFallbackFile] = useState(null);
   const [zoomLevel, setZoomLevel] = useState(13);
-  const [favorited, setFavorited] = useState([]);
+
   const [tileError, setTileError] = useState(false);
   const [tileProvider, setTileProvider] = useState('osm');
   const [mapKey, setMapKey] = useState(0);
@@ -547,7 +520,7 @@ const Mapa = ({ apiTrilhas, disableProbes = false }) => {
     difficulty: (t.difficulty === 'Moderada' ? 'Moderado' : t.difficulty) || t.difficulty || ''
   }));
   const trilhaSelecionada = trilhasPadronizadas[carouselIndex] || trilhasPadronizadas[0] || {};
-  const isFav = favorited.some(fav => fav.id === trilhaSelecionada.label);
+
 
   useEffect(() => {
     if (!ready) return;
@@ -597,9 +570,6 @@ const Mapa = ({ apiTrilhas, disableProbes = false }) => {
   }, [carouselIndex, selectedMarkersBase, ready]);
 
   useEffect(() => {
-    // Atualiza favoritos ao trocar trilha
-    const favs = localStorage.getItem('favorites');
-    setFavorited(favs ? JSON.parse(favs) : []);
     const syncUser = () => {
       const saved = localStorage.getItem('user');
       setUser(saved ? JSON.parse(saved) : null);
@@ -615,22 +585,7 @@ const Mapa = ({ apiTrilhas, disableProbes = false }) => {
   // Função para cor baseada na dificuldade
   const getCor = (dif) => dif === 'Fácil' ? '#43A047' : dif === 'Moderado' ? '#FFD600' : '#E53935';
 
-  const handleFavorite = (e) => {
-    e.stopPropagation();
-    if (!user) {
-      alert('Você precisa estar logado para favoritar trilhas!');
-      return;
-    }
-    let favs = localStorage.getItem('favorites');
-    favs = favs ? JSON.parse(favs) : [];
-    if (isFav) {
-      favs = favs.filter(fav => fav.id !== trilhaSelecionada.label);
-    } else {
-      favs.push({ id: trilhaSelecionada.label, ...trilhaSelecionada });
-    }
-    localStorage.setItem('favorites', JSON.stringify(favs));
-    setFavorited(favs);
-  };
+
 
   if (!ready) {
     return (
@@ -651,12 +606,7 @@ const Mapa = ({ apiTrilhas, disableProbes = false }) => {
             <CarouselBtn onClick={handleNext} $cor={getCor(trilhasPadronizadas[carouselIndex].difficulty)}>&gt;</CarouselBtn>
           </CarouselNav>
           <CarouselCard key={carouselIndex} $cor={getCor(trilhasPadronizadas[carouselIndex].difficulty)} style={{position:'relative'}}>
-            {user && (
-              <FavoriteButton onClick={handleFavorite} $isFavorite={isFav} title="" >
-                <i className={`fa${isFav ? 's' : 'r'} fa-star`}></i>
-                <Tooltip className="tooltip">{isFav ? 'Remover dos favoritos' : 'Favoritar'}</Tooltip>
-              </FavoriteButton>
-            )}
+
             <InfoRow style={{fontWeight:700, fontSize:'1.15rem', paddingRight:32}}><FaMountain/> {trilhasPadronizadas[carouselIndex]?.label}</InfoRow>
             <InfoRow><FaRoad/> Distância: <span style={{fontWeight:600}}>{trilhasPadronizadas[carouselIndex]?.distance ? parseFloat(trilhasPadronizadas[carouselIndex].distance).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) : ''} m</span></InfoRow>
             <InfoRow><FaClock/> Duração: <span style={{fontWeight:600}}>{trilhasPadronizadas[carouselIndex]?.duration} min</span></InfoRow>
